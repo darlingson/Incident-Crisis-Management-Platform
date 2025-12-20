@@ -5,6 +5,7 @@ services:
     ports:
       - "5433:5432"
     environment:
+      POSTGRES_DB: incident-crisis-db
       POSTGRES_PASSWORD: darlingson
     volumes:
       - postgres_data:/var/lib/postgresql/data
