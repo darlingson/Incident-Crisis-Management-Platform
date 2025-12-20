@@ -102,7 +102,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
     
-    var adminUser = await userManager.FindByEmailAsync("admin@yourapp.com");
+    var adminUser = await userManager.FindByEmailAsync("admin@Api.com");
     if (adminUser == null)
     {
         var admin = new ApplicationUser

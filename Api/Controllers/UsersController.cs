@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using YourApp.Models;
+using System.Security.Claims;
+using Api.Models;
 
 namespace Api.Controllers
 {

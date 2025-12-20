@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using YourApp.Models;
+using Api.Models;
 
 namespace Api.Services
 {
@@ -21,23 +21,30 @@ namespace Api.Services
         {
             _configuration = configuration;
         }
-
         public string GenerateToken(ApplicationUser user, IList<string> roles)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+            var keyValue = jwtSettings["Key"];
+    
+            if (string.IsNullOrEmpty(keyValue))
+                throw new InvalidOperationException("JWT Key is not configured");
+    
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim("FirstName", user.FirstName),
-                new Claim("LastName", user.LastName)
-            };
+                new Claim(ClaimTypes.Name, user.UserName ?? "")
+                };
+
+            if (!string.IsNullOrEmpty(user.FirstName))
+                claims.Add(new Claim("FirstName", user.FirstName));
+            if (!string.IsNullOrEmpty(user.LastName))
+                claims.Add(new Claim("LastName", user.LastName));
 
             foreach (var role in roles)
             {
