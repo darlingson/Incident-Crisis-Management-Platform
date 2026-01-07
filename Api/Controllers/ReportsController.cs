@@ -1,0 +1,52 @@
+using Api.Models;
+using Api.Data.Interfaces;
+using Api.DTOs.Reports;
+using Microsoft.AspNetCore.Mvc;
+namespace Api.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ReportsController : ControllerBase
+    {
+        private readonly IReportRepository _reportRepository;
+        public ReportsController(IReportRepository reportRepository)
+        {
+            _reportRepository = reportRepository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Report>>> GetReports()
+        {
+            var reports = await _reportRepository.GetAllAsync();
+            return Ok(reports);
+        }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Report>> GetReport(int id)
+        {
+            var report = await _reportRepository.GetByIdAsync(id);
+            if (report == null)
+                return NotFound();
+            return Ok(report);
+        }
+        [HttpPost]
+        public async Task<ActionResult<Report>> CreateReport(CreateReportDto dto)
+        {
+            var report = new Report
+            {
+                Title = dto.Title,
+                Type = dto.Type,
+                Status = "Open",
+                Location = dto.Location,
+                Narrative = dto.Narrative,
+                Impact = dto.Impact,
+                Description = dto.Description,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = 1
+            };
+            var newReport = await _reportRepository.AddAsync(report);
+            await _reportRepository.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetReport), new { id = newReport.Id }, newReport);
+        }
+    }
+}

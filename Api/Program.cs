@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
+using Api.Data.Interfaces;
+using Api.Data.Repository;
 using System.Text;
 using Api.Data;
 using Api.Models;
@@ -78,7 +79,7 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
-
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

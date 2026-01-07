@@ -13,6 +13,8 @@ namespace Api.Data
             : base(options)
         {
         }
+        public DbSet<Report> Reports => Set<Report>();
+        public DbSet<ReportEvidence> ReportEvidences => Set<ReportEvidence>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
