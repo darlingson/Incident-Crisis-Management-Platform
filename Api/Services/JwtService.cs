@@ -74,8 +74,13 @@ namespace Api.Services
         public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-
+            var keyValue = jwtSettings["Key"];
+            if (string.IsNullOrEmpty(keyValue))
+                throw new InvalidOperationException("JWT Key is not configured");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
+            if (key == null)
+                throw new InvalidOperationException("JWT Key is not configured");
+            
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = false,

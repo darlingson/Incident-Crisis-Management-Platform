@@ -31,6 +31,8 @@ namespace Api.Controllers
         public async Task<IActionResult> GetProfile()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+             if (userId == null)
+                return NotFound();
             var user = await _userManager.FindByIdAsync(userId);
             
             if (user == null)

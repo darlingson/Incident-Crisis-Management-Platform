@@ -33,7 +33,10 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddDefaultTokenProviders();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+var keyValue = jwtSettings["Key"];
+if (string.IsNullOrEmpty(keyValue))
+    throw new InvalidOperationException("JWT Key is not configured");
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -47,7 +50,7 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
+        IssuerSigningKey = key,
         ValidateIssuer = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidateAudience = true,
@@ -98,22 +101,22 @@ using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    
+
     string[] roleNames = { "Admin", "Moderator", "User" };
-    
+
     foreach (var roleName in roleNames)
     {
         var roleExist = await roleManager.RoleExistsAsync(roleName);
         if (!roleExist)
         {
-            await roleManager.CreateAsync(new ApplicationRole 
-            { 
-                Name = roleName, 
-                Description = $"{roleName} role for the application" 
+            await roleManager.CreateAsync(new ApplicationRole
+            {
+                Name = roleName,
+                Description = $"{roleName} role for the application"
             });
         }
     }
-    
+
     var adminUser = await userManager.FindByEmailAsync("admin@Api.com");
     if (adminUser == null)
     {
@@ -126,7 +129,7 @@ using (var scope = app.Services.CreateScope())
             EmailConfirmed = true,
             IsActive = true
         };
-        
+
         var createAdmin = await userManager.CreateAsync(admin, "AdminPassword@123");
         if (createAdmin.Succeeded)
         {
