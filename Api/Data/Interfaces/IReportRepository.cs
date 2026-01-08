@@ -6,6 +6,8 @@ namespace Api.Data.Interfaces
         Task<Report?> GetByIdAsync(int id);
         Task<IEnumerable<Report>> GetAllAsync();
         Task<Report> AddAsync(Report report);
+        Task UpdateAsync(Report report);
+        Task DeleteAsync(Report report);
         Task SaveChangesAsync();
     }
 }

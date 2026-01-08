@@ -25,5 +25,12 @@ namespace Api.Data.Repository
         public  Task SaveChangesAsync(){
             return _context.SaveChangesAsync();
         }
+        public async Task UpdateAsync(Report report){
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteAsync(Report report){
+            _context.Reports.Remove(report);
+            await _context.SaveChangesAsync();
+        }
     }
 }

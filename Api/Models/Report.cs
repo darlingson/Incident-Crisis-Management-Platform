@@ -14,12 +14,7 @@ namespace Api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int CreatedBy { get; set; }
-    }
-    public class ReportEvidence{
-        public int Id { get; set; }
-        public int ReportId { get; set; }
-        public string FilePath { get; set; } = String.Empty;
-        public DateTime CreatedAt { get; set; }
-        public int CreatedBy { get; set; }
+
+        public virtual ICollection<ReportEvidence> ReportEvidences { get; set; } = new List<ReportEvidence>();
     }
 }

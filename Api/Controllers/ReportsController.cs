@@ -9,9 +9,11 @@ namespace Api.Controllers
     public class ReportsController : ControllerBase
     {
         private readonly IReportRepository _reportRepository;
-        public ReportsController(IReportRepository reportRepository)
+        private readonly IReportEvidenceRepository _reportEvidenceRepository;
+        public ReportsController(IReportRepository reportRepository, IReportEvidenceRepository reportEvidenceRepository)
         {
             _reportRepository = reportRepository;
+            _reportEvidenceRepository = reportEvidenceRepository;
         }
 
         [HttpGet]
@@ -29,7 +31,7 @@ namespace Api.Controllers
             return Ok(report);
         }
         [HttpPost]
-        public async Task<ActionResult<Report>> CreateReport(CreateReportDto dto)
+        public async Task<ActionResult<Report>> CreateReport([FromForm] CreateReportDto dto)
         {
             var report = new Report
             {
@@ -45,6 +47,23 @@ namespace Api.Controllers
                 CreatedBy = 1
             };
             var newReport = await _reportRepository.AddAsync(report);
+            await _reportRepository.SaveChangesAsync();
+
+            if (dto.EvidenceFiles != null && dto.EvidenceFiles.Any())
+            {
+                foreach (var file in dto.EvidenceFiles)
+                {
+                    if (file.Length > 0)
+                    {
+                        var fileName = await _reportEvidenceRepository.SaveEvidenceFileAsync(file);
+                        report.ReportEvidences.Add(new ReportEvidence
+                        {
+                            ReportId = report.Id,
+                            FilePath = fileName
+                        });
+                    }
+                }
+            }
             await _reportRepository.SaveChangesAsync();
             return CreatedAtAction(nameof(GetReport), new { id = newReport.Id }, newReport);
         }
