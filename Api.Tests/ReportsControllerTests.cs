@@ -94,6 +94,32 @@ public class ReportsControllerTests
         response.ExistingReport.Should().NotBeNull();
         response.ExistingReport!.Type.Should().Be("Flood");
     }
+    [Fact]
+    public async Task CreateReport_ReturnsCreated_AndIncludesCategories()
+    {
+        var dto = new CreateReportDto
+        {
+            Title = "Test Report",
+            Narrative = "The elevator is broken",
+            Location = "Lobby"
+        };
+
+        _mockRepo.Setup(r => r.AddAsync(It.IsAny<Report>()))
+                 .ReturnsAsync((Report r) =>
+                 {
+                     r.Id = 1;
+                     r.ReportCategories.Add(new ReportCategories { CategoryId = 2 });
+                     return r;
+                 });
+
+        var result = await _controller.CreateReport(dto);
+
+        var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        var returnedReport = createdResult.Value.Should().BeOfType<Report>().Subject;
+
+        returnedReport.Id.Should().Be(1);
+        returnedReport.ReportCategories.Should().NotBeEmpty();
+    }
     private IFormFile CreateMockFile(string fileName)
     {
         var fileMock = new Mock<IFormFile>();

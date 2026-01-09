@@ -90,6 +90,43 @@ public class ReportRepositoryTests
 
         result.Should().BeNull();
     }
+    [Fact]
+    public async Task AddAsync_ShouldAutoCategorize_WhenKeywordsArePresent()
+    {
+        var context = await GetDatabaseContext();
+        var repository = new ReportRepository(context);
+
+        var report = new Report
+        {
+            Title = "Security Breach",
+            Narrative = "An intruder was spotted near the server room.",
+            Description = "Possible entry by intruder"
+        };
+
+        var result = await repository.AddAsync(report);
+        await repository.SaveChangesAsync();
+
+        var savedReport = await context.Reports
+            .Include(r => r.ReportCategories)
+            .FirstOrDefaultAsync(r => r.Id == result.Id);
+
+        savedReport.Should().NotBeNull();
+        savedReport!.ReportCategories.Should().Contain(rc => rc.CategoryId == 3);
+    }
+
+    [Fact]
+    public async Task AddAsync_ShouldDefaultToOther_WhenNoKeywordsMatch()
+    {
+        var context = await GetDatabaseContext();
+        var repository = new ReportRepository(context);
+        var report = new Report { Narrative = "Just a normal day, nothing specific happening." };
+
+        var result = await repository.AddAsync(report);
+        await repository.SaveChangesAsync();
+
+        var savedReport = await context.Reports.Include(r => r.ReportCategories).FirstAsync();
+        savedReport.ReportCategories.Should().Contain(rc => rc.CategoryId == 7);
+    }
     private IFormFile CreateMockFile(string fileName)
     {
         var fileMock = new Mock<IFormFile>();
