@@ -47,6 +47,49 @@ public class ReportRepositoryTests
 
         if (Directory.Exists("wwwroot")) Directory.Delete("wwwroot", true);
     }
+    [Fact]
+    public async Task FindDuplicateAsync_ShouldReturnMatch_WhenWithinTimeWindow()
+    {
+        var context = await GetDatabaseContext();
+        var repository = new ReportRepository(context);
+        var now = DateTime.UtcNow;
+
+        var existingReport = new Report
+        {
+            Title = "Existing Fire",
+            Type = "Fire",
+            Location = "Sector 7",
+            CreatedAt = now.AddMinutes(-10)
+        };
+        await context.Reports.AddAsync(existingReport);
+        await context.SaveChangesAsync();
+
+        var result = await repository.FindDuplicateAsync("Fire", "Sector 7", now);
+
+        result.Should().NotBeNull();
+        result!.Title.Should().Be("Existing Fire");
+    }
+
+    [Fact]
+    public async Task FindDuplicateAsync_ShouldReturnNull_WhenOutsideTimeWindow()
+    {
+        var context = await GetDatabaseContext();
+        var repository = new ReportRepository(context);
+        var now = DateTime.UtcNow;
+
+        var oldReport = new Report
+        {
+            Type = "Fire",
+            Location = "Sector 7",
+            CreatedAt = now.AddMinutes(-60)
+        };
+        await context.Reports.AddAsync(oldReport);
+        await context.SaveChangesAsync();
+
+        var result = await repository.FindDuplicateAsync("Fire", "Sector 7", now);
+
+        result.Should().BeNull();
+    }
     private IFormFile CreateMockFile(string fileName)
     {
         var fileMock = new Mock<IFormFile>();

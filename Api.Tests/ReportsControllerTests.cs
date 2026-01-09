@@ -75,6 +75,25 @@ public class ReportsControllerTests
         result.Result.Should().BeOfType<CreatedAtActionResult>();
         _mockEvidenceRepo.Verify(e => e.SaveEvidenceFileAsync(It.IsAny<IFormFile>()), Times.Never);
     }
+    [Fact]
+    public async Task CheckDuplicate_ReturnsTrue_WhenDuplicateFound()
+    {
+        var dto = new DuplicateCheckDto { Type = "Flood", Location = "Downtown" };
+        var existingMatch = new Report { Id = 50, Type = "Flood", Location = "Downtown" };
+
+        _mockRepo.Setup(r => r.FindDuplicateAsync(dto.Type, dto.Location, It.IsAny<DateTime>()))
+                 .ReturnsAsync(existingMatch);
+
+        var result = await _controller.CheckDuplicate(dto);
+
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value.Should().BeOfType<DuplicateCheckResponse>().Subject;
+
+        response.IsDuplicate.Should().BeTrue();
+        response.ExistingReportId.Should().Be(50);
+        response.ExistingReport.Should().NotBeNull();
+        response.ExistingReport!.Type.Should().Be("Flood");
+    }
     private IFormFile CreateMockFile(string fileName)
     {
         var fileMock = new Mock<IFormFile>();
