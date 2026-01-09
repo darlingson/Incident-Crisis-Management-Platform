@@ -22,8 +22,43 @@ namespace Api.Data.Repository
         }
         public async Task<Report> AddAsync(Report report)
         {
+            var suggestedCategoryIds = GetSuggestedCategoryIds(report.Narrative ?? report.Description);
+            foreach (var categoryId in suggestedCategoryIds)
+            {
+                report.ReportCategories.Add(new ReportCategories
+                {
+                    CategoryId = categoryId
+                });
+            }
             var NewReport = await _context.Reports.AddAsync(report);
             return NewReport.Entity;
+        }
+        private List<int> GetSuggestedCategoryIds(string content)
+        {
+            var suggestions = new List<int>();
+            if (string.IsNullOrWhiteSpace(content)) return suggestions;
+
+            var text = content.ToLower();
+
+            if (text.Contains("leak") || text.Contains("plumbing") || text.Contains("elevator"))
+                suggestions.Add(2);
+
+            if (text.Contains("theft") || text.Contains("intruder") || text.Contains("unauthorized"))
+                suggestions.Add(3);
+
+            if (text.Contains("harassment") || text.Contains("bullying") || text.Contains("payroll"))
+                suggestions.Add(4);
+
+            if (text.Contains("slip") || text.Contains("fall") || text.Contains("hazard") || text.Contains("injury"))
+                suggestions.Add(5);
+
+            if (text.Contains("audit") || text.Contains("policy") || text.Contains("violation"))
+                suggestions.Add(6);
+
+            if (!suggestions.Any())
+                suggestions.Add(7);
+
+            return suggestions.Distinct().ToList();
         }
         public Task SaveChangesAsync()
         {
