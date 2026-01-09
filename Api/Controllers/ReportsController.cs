@@ -67,5 +67,28 @@ namespace Api.Controllers
             await _reportRepository.SaveChangesAsync();
             return CreatedAtAction(nameof(GetReport), new { id = newReport.Id }, newReport);
         }
+        [HttpPost("check-duplicate")]
+        public async Task<ActionResult<DuplicateCheckResponse>> CheckDuplicate(DuplicateCheckDto dto)
+        {
+            var duplicate = await _reportRepository.FindDuplicateAsync(
+                dto.Type,
+                dto.Location,
+                DateTime.UtcNow
+            );
+
+            if (duplicate == null)
+            {
+                return Ok(new DuplicateCheckResponse { IsDuplicate = false });
+            }
+
+            return Ok(new DuplicateCheckResponse
+            {
+                IsDuplicate = true,
+                ExistingReportId = duplicate.Id,
+                CreatedAt = duplicate.CreatedAt,
+                Message = $"A similar {duplicate.Type} report already exists at this location.",
+                ExistingReport = duplicate
+            });
+        }
     }
 }

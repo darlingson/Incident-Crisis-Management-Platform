@@ -75,6 +75,51 @@ public class ReportsControllerTests
         result.Result.Should().BeOfType<CreatedAtActionResult>();
         _mockEvidenceRepo.Verify(e => e.SaveEvidenceFileAsync(It.IsAny<IFormFile>()), Times.Never);
     }
+    [Fact]
+    public async Task CheckDuplicate_ReturnsTrue_WhenDuplicateFound()
+    {
+        var dto = new DuplicateCheckDto { Type = "Flood", Location = "Downtown" };
+        var existingMatch = new Report { Id = 50, Type = "Flood", Location = "Downtown" };
+
+        _mockRepo.Setup(r => r.FindDuplicateAsync(dto.Type, dto.Location, It.IsAny<DateTime>()))
+                 .ReturnsAsync(existingMatch);
+
+        var result = await _controller.CheckDuplicate(dto);
+
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var response = okResult.Value.Should().BeOfType<DuplicateCheckResponse>().Subject;
+
+        response.IsDuplicate.Should().BeTrue();
+        response.ExistingReportId.Should().Be(50);
+        response.ExistingReport.Should().NotBeNull();
+        response.ExistingReport!.Type.Should().Be("Flood");
+    }
+    [Fact]
+    public async Task CreateReport_ReturnsCreated_AndIncludesCategories()
+    {
+        var dto = new CreateReportDto
+        {
+            Title = "Test Report",
+            Narrative = "The elevator is broken",
+            Location = "Lobby"
+        };
+
+        _mockRepo.Setup(r => r.AddAsync(It.IsAny<Report>()))
+                 .ReturnsAsync((Report r) =>
+                 {
+                     r.Id = 1;
+                     r.ReportCategories.Add(new ReportCategories { CategoryId = 2 });
+                     return r;
+                 });
+
+        var result = await _controller.CreateReport(dto);
+
+        var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        var returnedReport = createdResult.Value.Should().BeOfType<Report>().Subject;
+
+        returnedReport.Id.Should().Be(1);
+        returnedReport.ReportCategories.Should().NotBeEmpty();
+    }
     private IFormFile CreateMockFile(string fileName)
     {
         var fileMock = new Mock<IFormFile>();
