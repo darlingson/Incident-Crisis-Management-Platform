@@ -36,6 +36,10 @@ namespace Api.Data
                     .HasForeignKey(ur => ur.RoleId)
                     .IsRequired();
             });
+            
+            builder.Entity<Report>()
+            .Property(r => r.Status)
+            .HasConversion<string>();
 
             builder.Entity<ReportCategories>()
             .HasOne(rc => rc.Report)

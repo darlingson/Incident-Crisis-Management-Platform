@@ -18,7 +18,10 @@ namespace Api.Data.Repository
         }
         public async Task<Report?> GetByIdAsync(int id)
         {
-            return await _context.Reports.FindAsync(id);
+            return await _context.Reports
+            .Include(r => r.ReportCategories)
+            .ThenInclude(rc => rc.Category)
+            .FirstOrDefaultAsync(r => r.Id == id);
         }
         public async Task<Report> AddAsync(Report report)
         {
@@ -66,6 +69,7 @@ namespace Api.Data.Repository
         }
         public async Task UpdateAsync(Report report)
         {
+            _context.Reports.Update(report);
             await _context.SaveChangesAsync();
         }
         public async Task DeleteAsync(Report report)
