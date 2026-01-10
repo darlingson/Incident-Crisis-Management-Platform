@@ -17,6 +17,7 @@ namespace Api.Data
         public DbSet<ReportEvidence> ReportEvidences => Set<ReportEvidence>();
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<ReportCategories> ReportCategories => Set<ReportCategories>();
+        public DbSet<ReportStatusHistory> ReportStatusHistories => Set<ReportStatusHistory>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -36,6 +37,10 @@ namespace Api.Data
                     .HasForeignKey(ur => ur.RoleId)
                     .IsRequired();
             });
+
+            builder.Entity<Report>()
+            .Property(r => r.Status)
+            .HasConversion<string>();
 
             builder.Entity<ReportCategories>()
             .HasOne(rc => rc.Report)

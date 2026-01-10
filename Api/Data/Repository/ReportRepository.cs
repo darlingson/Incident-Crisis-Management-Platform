@@ -3,6 +3,7 @@ namespace Api.Data.Repository
     using Api.Data.Interfaces;
     using Api.Models;
     using Api.Data;
+    using Api.DTOs.Reports;
     using Microsoft.EntityFrameworkCore;
     public class ReportRepository : IReportRepository
     {
@@ -18,7 +19,10 @@ namespace Api.Data.Repository
         }
         public async Task<Report?> GetByIdAsync(int id)
         {
-            return await _context.Reports.FindAsync(id);
+            return await _context.Reports
+            .Include(r => r.ReportCategories)
+            .ThenInclude(rc => rc.Category)
+            .FirstOrDefaultAsync(r => r.Id == id);
         }
         public async Task<Report> AddAsync(Report report)
         {
@@ -66,6 +70,7 @@ namespace Api.Data.Repository
         }
         public async Task UpdateAsync(Report report)
         {
+            _context.Reports.Update(report);
             await _context.SaveChangesAsync();
         }
         public async Task DeleteAsync(Report report)
@@ -83,6 +88,39 @@ namespace Api.Data.Repository
                 .Where(r => r.Type == type && r.Location == location && r.CreatedAt >= gracePeriod)
                 .OrderByDescending(r => r.CreatedAt)
                 .FirstOrDefaultAsync();
+        }
+        public async Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes)
+        {
+            var report = await _context.Reports.FindAsync(id);
+            if (report == null)
+                return TransitionResult.Failure($"Report with ID {id} not found.");
+
+            if (!ReportStatusWorkflow.CanTransition(report.Status, newStatus))
+                return TransitionResult.Failure($"Illegal transition: You cannot move an incident from {report.Status} to {newStatus}.");
+
+            if (newStatus == ReportStatus.Resolved && string.IsNullOrWhiteSpace(report.Impact))
+                return TransitionResult.Failure("Resolution failed: Impact assessment is required before an incident can be marked as Resolved.");
+
+            var history = new ReportStatusHistory
+            {
+                ReportId = report.Id,
+                OldStatus = report.Status,
+                NewStatus = newStatus,
+                ChangedBy = changedBy,
+                ChangedAt = DateTime.UtcNow,
+                TransitionNotes = transitionNotes
+            };
+
+            report.Status = newStatus;
+            report.UpdatedAt = DateTime.UtcNow;
+
+            if (newStatus == ReportStatus.Resolved)
+                report.ResolvedAt = DateTime.UtcNow;
+
+            _context.ReportStatusHistories.Add(history);
+            await _context.SaveChangesAsync();
+
+            return TransitionResult.Ok();
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Api.Controllers
             {
                 Title = dto.Title,
                 Type = dto.Type,
-                Status = "Open",
+                // Status = ReportStatus.Reported,
                 Location = dto.Location,
                 Narrative = dto.Narrative,
                 Impact = dto.Impact,
@@ -88,6 +88,36 @@ namespace Api.Controllers
                 CreatedAt = duplicate.CreatedAt,
                 Message = $"A similar {duplicate.Type} report already exists at this location.",
                 ExistingReport = duplicate
+            });
+        }
+        [HttpGet("{id}/status")]
+        public async Task<IActionResult> GetReportStatus(int id)
+        {
+            var report = await _reportRepository.GetByIdAsync(id);
+
+            if (report == null) return NotFound();
+
+            return Ok(new
+            {
+                report.Id,
+                report.Title,
+                Status = report.Status.ToString()
+            });
+        }
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> TransitionStatus(int id, [FromBody] StatusTransitionDto dto)
+        {
+            var result = await _reportRepository.UpdateStatusAsync(id, dto.NewStatus, 1, dto.TransitionNotes);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { Error = result.Message });
+            }
+
+            return Ok(new
+            {
+                Message = "Status updated successfully",
+                NewStatus = dto.NewStatus.ToString()
             });
         }
     }
