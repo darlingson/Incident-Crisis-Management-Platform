@@ -1,6 +1,7 @@
 namespace Api.Data.Interfaces
 {
     using Api.Models;
+    using Api.DTOs.Reports;
 
     public interface IReportRepository {
         Task<Report?> GetByIdAsync(int id);
@@ -10,6 +11,6 @@ namespace Api.Data.Interfaces
         Task DeleteAsync(Report report);
         Task SaveChangesAsync();
         Task<Report?> FindDuplicateAsync(string type, string location, DateTime currentTime);
-        Task UpdateStatusAsync(int id, ReportStatus newStatus);
+        Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes);
     }
 }

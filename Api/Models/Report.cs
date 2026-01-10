@@ -19,6 +19,7 @@ namespace Api.Models
 
         public virtual ICollection<ReportEvidence> ReportEvidences { get; set; } = new List<ReportEvidence>();
         public virtual ICollection<ReportCategories> ReportCategories { get; set; } = new List<ReportCategories>();
+        public virtual ICollection<ReportStatusHistory> StatusHistories { get; set; } = new List<ReportStatusHistory>();
     }
 
     public class Category

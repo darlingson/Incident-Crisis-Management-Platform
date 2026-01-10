@@ -107,10 +107,12 @@ namespace Api.Controllers
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> TransitionStatus(int id, [FromBody] StatusTransitionDto dto)
         {
-            var report = await _reportRepository.GetByIdAsync(id);
-            if (report == null) return NotFound();
+            var result = await _reportRepository.UpdateStatusAsync(id, dto.NewStatus, 1, dto.TransitionNotes);
 
-            await _reportRepository.UpdateStatusAsync(id, dto.NewStatus);
+            if (!result.Success)
+            {
+                return BadRequest(new { Error = result.Message });
+            }
 
             return Ok(new
             {
