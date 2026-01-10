@@ -127,6 +127,55 @@ public class ReportRepositoryTests
         var savedReport = await context.Reports.Include(r => r.ReportCategories).FirstAsync();
         savedReport.ReportCategories.Should().Contain(rc => rc.CategoryId == 7);
     }
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldFail_WhenResolvingWithoutImpact()
+    {
+        var context = await GetDatabaseContext();
+        var repo = new ReportRepository(context);
+        var report = new Report { Id = 1, Status = ReportStatus.UnderInvestigation, Impact = "" };
+        context.Reports.Add(report);
+        await context.SaveChangesAsync();
+
+        var result = await repo.UpdateStatusAsync(1, ReportStatus.Resolved, 1, "Testing resolution");
+
+        result.Success.Should().BeFalse();
+        result.Message.Should().Contain("Impact assessment is required");
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldCreateHistoryRecord_OnSuccess()
+    {
+        var context = await GetDatabaseContext();
+        var repo = new ReportRepository(context);
+        var report = new Report { Id = 1, Status = ReportStatus.Reported };
+        context.Reports.Add(report);
+        await context.SaveChangesAsync();
+
+        await repo.UpdateStatusAsync(1, ReportStatus.Acknowledged, 99, "Acknowledging now");
+
+        var history = await context.ReportStatusHistories.FirstOrDefaultAsync(h => h.ReportId == 1);
+        history.Should().NotBeNull();
+        history!.OldStatus.Should().Be(ReportStatus.Reported);
+        history.NewStatus.Should().Be(ReportStatus.Acknowledged);
+        history.ChangedBy.Should().Be(99);
+    }
+    [Fact]
+    public async Task UpdateStatusAsync_ShouldAllowReopeningClosedIncident()
+    {
+        var context = await GetDatabaseContext();
+        var repo = new ReportRepository(context);
+        var oldDate = DateTime.UtcNow.AddDays(-5);
+        var report = new Report { Id = 1, Status = ReportStatus.Closed, UpdatedAt = oldDate };
+        context.Reports.Add(report);
+        await context.SaveChangesAsync();
+
+        var result = await repo.UpdateStatusAsync(1, ReportStatus.UnderInvestigation, 1, "New evidence found");
+
+        result.Success.Should().BeTrue();
+        var updatedReport = await context.Reports.FindAsync(1);
+        updatedReport!.Status.Should().Be(ReportStatus.UnderInvestigation);
+        updatedReport.UpdatedAt.Should().BeAfter(oldDate);
+    }
     private IFormFile CreateMockFile(string fileName)
     {
         var fileMock = new Mock<IFormFile>();
