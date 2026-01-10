@@ -10,5 +10,6 @@ namespace Api.Data.Interfaces
         Task DeleteAsync(Report report);
         Task SaveChangesAsync();
         Task<Report?> FindDuplicateAsync(string type, string location, DateTime currentTime);
+        Task UpdateStatusAsync(int id, ReportStatus newStatus);
     }
 }

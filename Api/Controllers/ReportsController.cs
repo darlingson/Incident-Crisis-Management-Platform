@@ -104,5 +104,19 @@ namespace Api.Controllers
                 Status = report.Status.ToString()
             });
         }
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> TransitionStatus(int id, [FromBody] StatusTransitionDto dto)
+        {
+            var report = await _reportRepository.GetByIdAsync(id);
+            if (report == null) return NotFound();
+
+            await _reportRepository.UpdateStatusAsync(id, dto.NewStatus);
+
+            return Ok(new
+            {
+                Message = "Status updated successfully",
+                NewStatus = dto.NewStatus.ToString()
+            });
+        }
     }
 }

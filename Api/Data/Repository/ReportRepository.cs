@@ -88,5 +88,21 @@ namespace Api.Data.Repository
                 .OrderByDescending(r => r.CreatedAt)
                 .FirstOrDefaultAsync();
         }
+        public async Task UpdateStatusAsync(int id, ReportStatus newStatus)
+        {
+            var report = await _context.Reports.FindAsync(id);
+            if (report != null)
+            {
+                report.Status = newStatus;
+                report.UpdatedAt = DateTime.UtcNow;
+
+                if (newStatus == ReportStatus.Resolved)
+                {
+                    report.ResolvedAt = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }
