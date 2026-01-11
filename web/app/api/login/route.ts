@@ -38,6 +38,24 @@ export async function POST(request: Request) {
             maxAge: 60 * 60 * 24 * 7,
         });
 
+        cookieStore.set('userRole', data.user.roles[0], {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+
+        cookieStore.set('userInfo', JSON.stringify({
+            firstName: data.user.firstName,
+            lastName: data.user.lastName,
+            email: data.user.email
+        }), {
+            httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+
         return NextResponse.json({
             user: data.user,
             message: 'Login successful'

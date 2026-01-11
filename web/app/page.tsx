@@ -39,19 +39,16 @@ export default function LoginPage() {
         body: JSON.stringify({
           email,
           password,
-          allowUnconfirmedEmail: true // Matching your CURL requirement
+          allowUnconfirmedEmail: true 
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // This catches 401, 400, or 500 errors from your Route Handler
         throw new Error(data.error || "Authentication failed. Please check your credentials.");
       }
 
-      // Success: The Route Handler has already set the httpOnly cookies.
-      // We refresh to ensure Server Components/Middleware pick up the new session.
       router.refresh();
       router.push("/dashboard");
 
@@ -152,7 +149,7 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="password" text-zinc-400>Master Password</Label>
+                    <Label htmlFor="password" className="text-zinc-400">Master Password</Label>
                     <button type="button" className="text-xs text-blue-500 hover:text-blue-400 hover:underline">
                       Recovery Protocol?
                     </button>
