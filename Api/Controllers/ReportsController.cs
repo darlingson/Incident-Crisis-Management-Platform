@@ -17,7 +17,7 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Report>>> GetReports()
+        public async Task<ActionResult<IEnumerable<ReportResponseDto>>> GetReports()
         {
             var reports = await _reportRepository.GetAllAsync();
             return Ok(reports);

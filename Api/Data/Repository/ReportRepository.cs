@@ -13,13 +13,43 @@ namespace Api.Data.Repository
         {
             _context = context;
         }
-        public async Task<IEnumerable<Report>> GetAllAsync()
+        public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
         {
-            return await _context.Reports.ToListAsync();
+            return await _context.Reports
+                .AsNoTracking()
+                .Select(r => new ReportResponseDto
+                {
+                    Id = r.Id,
+                    Title = r.Title,
+                    Type = r.Type,
+                    Status = r.Status.ToString(),
+                    Location = r.Location,
+                    Narrative = r.Narrative,
+                    Impact = r.Impact,
+                    AssignedTo = r.AssignedTo,
+                    ResolvedAt = r.ResolvedAt,
+                    CreatedAt = r.CreatedAt,
+                    UpdatedAt = r.UpdatedAt,
+                    EvidenceFiles = r.ReportEvidences.Select(e => e.FilePath).ToList(),
+                    Categories = r.ReportCategories.Select(rc => rc.Category.Name).ToList(),
+                    History = r.StatusHistories
+                        .OrderByDescending(h => h.ChangedAt)
+                        .Select(h => new StatusHistoryDto
+                        {
+                            OldStatus = h.OldStatus.ToString(),
+                            NewStatus = h.NewStatus.ToString(),
+                            TransitionNotes = h.TransitionNotes,
+                            ChangedAt = h.ChangedAt,
+                            ChangedBy = h.ChangedBy
+                        }).ToList()
+                })
+                .ToListAsync();
         }
         public async Task<Report?> GetByIdAsync(int id)
         {
             return await _context.Reports
+            .Include(r => r.ReportEvidences)
+            .Include(r => r.StatusHistories.OrderByDescending(h => h.ChangedAt))
             .Include(r => r.ReportCategories)
             .ThenInclude(rc => rc.Category)
             .FirstOrDefaultAsync(r => r.Id == id);
