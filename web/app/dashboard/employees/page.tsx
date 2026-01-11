@@ -1,19 +1,20 @@
 "use client";
 
 import React from "react";
-import { 
-  PlusCircle, 
-  Clock, 
-  HelpCircle, 
-  Phone, 
-  Mail, 
-  FileText, 
-  Shield, 
+import {
+  PlusCircle,
+  Clock,
+  HelpCircle,
+  Phone,
+  Mail,
+  FileText,
+  Shield,
   Map,
   Wifi,
   Package,
   ArrowRight
 } from "lucide-react";
+import Link from 'next/link'
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,8 +27,7 @@ export default function EmployeePortal() {
   return (
     <TooltipProvider>
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        
-        {/* Header Section */}
+
         <div className="flex flex-col space-y-1">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
             Good afternoon, <span className="text-blue-500">Alex</span>
@@ -36,41 +36,50 @@ export default function EmployeePortal() {
             CrisisCMD Employee Portal • Secure Incident Management
           </p>
         </div>
+        <Card className="relative overflow-hidden border-zinc-800 bg-zinc-950/50 backdrop-blur-sm shadow-2xl">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 p-6 opacity-5 pointer-events-none">
+            <Shield className="w-64 h-64" />
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Left Column: Main Actions */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* Hero Action Card */}
-            <Card className="relative overflow-hidden border-zinc-800 bg-zinc-950/50 backdrop-blur-sm shadow-2xl">
-              <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                <Shield className="w-48 h-48 rotate-12" />
-              </div>
-              
-              <CardHeader className="relative z-10 pb-2">
-                <Badge variant="outline" className="w-fit mb-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-3 py-1">
+          <CardContent className="p-8 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+
+              <div className="space-y-4">
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-3 py-1">
                   <span className="relative flex h-2 w-2 mr-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
                   System Operational
                 </Badge>
-                <CardTitle className="text-4xl font-bold tracking-tight">Report an Incident</CardTitle>
-                <CardDescription className="text-zinc-400 text-lg max-w-md pt-2">
-                  Spot a safety hazard, IT issue, or security breach? Notify the command center immediately.
-                </CardDescription>
-              </CardHeader>
+                <div>
+                  <h2 className="text-3xl font-bold tracking-tight mb-2">Report an Incident</h2>
+                  <p className="text-zinc-400 text-base max-w-md">
+                    Spot a safety hazard or security breach? Notify the command center immediately to ensure site-wide safety.
+                  </p>
+                </div>
+              </div>
 
-              <CardContent className="relative z-10 pt-6">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-10 h-14 text-lg font-bold shadow-lg shadow-blue-500/20 group">
-                  <PlusCircle className="w-6 h-6 mr-3 group-hover:rotate-90 transition-transform duration-300" />
-                  Initiate Report
-                </Button>
-              </CardContent>
-            </Card>
+              <div className="flex md:justify-end">
+                <Link href="/dashboard/incidents/report">
+                  <Button
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-12 h-16 text-lg font-bold shadow-lg shadow-blue-500/20 group transition-all"
+                  >
+                    <PlusCircle className="w-6 h-6 mr-3 group-hover:rotate-90 transition-transform duration-300" />
+                    Initiate Report
+                  </Button>
+                </Link>
+              </div>
 
-            {/* My Reported Incidents */}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          <div className="lg:col-span-2 space-y-8">
+
             <div className="space-y-4">
               <div className="flex justify-between items-end px-1">
                 <div className="space-y-1">
@@ -87,7 +96,6 @@ export default function EmployeePortal() {
 
               <ScrollArea className="h-[320px] rounded-md">
                 <div className="space-y-3 pr-4">
-                  {/* Item 1 */}
                   <Card className="bg-zinc-900/40 border-zinc-800/50 hover:border-blue-500/50 transition-all duration-300 cursor-pointer group">
                     <CardContent className="p-5 flex items-center gap-5">
                       <div className="h-14 w-14 rounded-2xl bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
@@ -103,7 +111,6 @@ export default function EmployeePortal() {
                     </CardContent>
                   </Card>
 
-                  {/* Item 2 */}
                   <Card className="bg-zinc-900/40 border-zinc-800/50 opacity-70 grayscale-[0.5] hover:grayscale-0 transition-all">
                     <CardContent className="p-5 flex items-center gap-5">
                       <div className="h-14 w-14 rounded-2xl bg-zinc-800 flex items-center justify-center">
@@ -123,10 +130,8 @@ export default function EmployeePortal() {
             </div>
           </div>
 
-          {/* Right Column: Widgets */}
           <div className="space-y-8">
-            
-            {/* Help & Support Widget */}
+
             <Card className="border-zinc-800 bg-zinc-900/20">
               <CardHeader className="pb-4">
                 <CardTitle className="text-blue-500 flex items-center gap-2 text-lg">
@@ -160,7 +165,6 @@ export default function EmployeePortal() {
               </CardContent>
             </Card>
 
-            {/* Useful Resources */}
             <div className="space-y-4 px-1">
               <h3 className="text-xs font-black text-zinc-600 uppercase tracking-[0.2em]">Compliance Resources</h3>
               <div className="grid gap-2">
@@ -169,9 +173,9 @@ export default function EmployeePortal() {
                   { name: "Safety & Security Protocols", icon: Shield },
                   { name: "Evacuation Route Maps", icon: Map },
                 ].map((link) => (
-                  <Button 
-                    key={link.name} 
-                    variant="ghost" 
+                  <Button
+                    key={link.name}
+                    variant="ghost"
                     className="w-full justify-start text-zinc-400 hover:text-white hover:bg-zinc-800/50 h-11 px-3 group"
                   >
                     <link.icon className="w-4 h-4 mr-3 text-zinc-700 group-hover:text-blue-500 transition-colors" />
