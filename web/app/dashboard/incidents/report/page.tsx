@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { 
   Shield, Lock, Users, Building, Globe, 
-  AlertCircle, Upload, Trash2, Send, Save 
+  AlertCircle, Upload, Trash2, Send, Save, Loader2 
 } from "lucide-react";
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,8 @@ import {
 export default function IncidentReportForm() {
   const [loading, setLoading] = useState(false);
   const [incidentType, setIncidentType] = useState("Safety");
+  const [files, setFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const types = [
     { id: "Safety", icon: Shield },
@@ -30,6 +32,61 @@ export default function IncidentReportForm() {
     { id: "Facilities", icon: Building },
     { id: "Reputational", icon: Globe },
   ];
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const submissionData = new FormData();
+
+    // Map fields to your specific API requirements
+    submissionData.append("Title", formData.get("shortDescription") as string);
+    submissionData.append("Type", incidentType);
+    submissionData.append("Location", formData.get("location") as string);
+    submissionData.append("Impact", formData.get("impact") as string);
+    submissionData.append("Narrative", formData.get("narrative") as string);
+    submissionData.append("Description", formData.get("narrative") as string); 
+
+    // Append all selected files
+    files.forEach((file) => {
+      submissionData.append("EvidenceFiles", file);
+    });
+
+    try {
+      const res = await fetch("/api/reports/create-report/", {
+        method: "POST",
+        body: submissionData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Submission failed");
+      }
+
+      toast.success("Incident reported successfully!");
+      // Reset form logic
+      setFiles([]);
+      setIncidentType("Safety");
+      (e.target as HTMLFormElement).reset();
+      
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while submitting.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-6 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -52,7 +109,7 @@ export default function IncidentReportForm() {
         </div>
       </div>
 
-      {/* Anonymous Mode */}
+      {/* Anonymous Mode Toggle */}
       <div className="flex items-center justify-between p-4 bg-zinc-900/40 border border-zinc-800 rounded-xl">
         <div className="flex gap-4 items-center">
           <div className="p-2 bg-zinc-800 rounded-lg">
@@ -63,10 +120,10 @@ export default function IncidentReportForm() {
             <p className="text-xs text-zinc-500">Submit this report without linking it to your employee profile.</p>
           </div>
         </div>
-        <Switch />
+        <Switch name="isAnonymous" />
       </div>
 
-      <form className="space-y-12">
+      <form onSubmit={onSubmit} className="space-y-12">
         {/* Step 1: Incident Type */}
         <div className="space-y-6">
           <div className="flex items-center gap-3">
@@ -102,19 +159,24 @@ export default function IncidentReportForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label className="text-zinc-400">Short Description (Title)</Label>
-              <Input placeholder="e.g., Slip and fall in lobby" className="bg-zinc-900/50 border-zinc-800 h-12" />
+              <Input 
+                name="shortDescription" 
+                required 
+                placeholder="e.g., Slip and fall in lobby" 
+                className="bg-zinc-900/50 border-zinc-800 h-12 focus:ring-blue-500" 
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-zinc-400">Impact Level</Label>
-              <Select>
+              <Select name="impact" required>
                 <SelectTrigger className="bg-zinc-900/50 border-zinc-800 h-12">
                   <SelectValue placeholder="Select impact level..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low - Minimal Distruption</SelectItem>
-                  <SelectItem value="medium">Medium - Operational Impact</SelectItem>
-                  <SelectItem value="high">High - Safety Concern</SelectItem>
-                  <SelectItem value="critical">Critical - Immediate Action</SelectItem>
+                  <SelectItem value="Low">Low - Minimal Distruption</SelectItem>
+                  <SelectItem value="Medium">Medium - Operational Impact</SelectItem>
+                  <SelectItem value="High">High - Safety Concern</SelectItem>
+                  <SelectItem value="Critical">Critical - Immediate Action</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -122,14 +184,15 @@ export default function IncidentReportForm() {
 
           <div className="space-y-2">
             <Label className="text-zinc-400">Location</Label>
-            <Select>
+            <Select name="location" required>
               <SelectTrigger className="bg-zinc-900/50 border-zinc-800 h-12">
                 <SelectValue placeholder="Select location..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="hq">Headquarters (Main Lobby)</SelectItem>
-                <SelectItem value="warehouse">East Warehouse</SelectItem>
-                <SelectItem value="data">Data Center</SelectItem>
+                <SelectItem value="Headquarters">Headquarters (Main Lobby)</SelectItem>
+                <SelectItem value="East Warehouse">East Warehouse</SelectItem>
+                <SelectItem value="Data Center">Data Center</SelectItem>
+                <SelectItem value="Remote">Remote / Field Site</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -137,20 +200,35 @@ export default function IncidentReportForm() {
           <div className="space-y-2">
             <Label className="text-zinc-400">Detailed Narrative</Label>
             <Textarea 
+              name="narrative"
+              required
               placeholder="Please describe exactly what happened. Include names of people involved if known." 
-              className="bg-zinc-900/50 border-zinc-800 min-h-[150px] resize-none"
+              className="bg-zinc-900/50 border-zinc-800 min-h-[150px] resize-none focus:ring-blue-500"
             />
           </div>
         </div>
 
-        {/* Step 3: Evidence */}
+        {/* Step 3: Evidence & Files */}
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold">3</div>
             <h3 className="text-xl font-bold">Evidence & Attachments</h3>
           </div>
 
-          <div className="border-2 border-dashed border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center bg-zinc-900/20 hover:bg-zinc-900/40 transition-colors cursor-pointer group">
+          {/* Hidden File Input */}
+          <input 
+            type="file" 
+            multiple 
+            hidden 
+            ref={fileInputRef} 
+            onChange={handleFileChange}
+            accept=".svg,.png,.jpg,.pdf"
+          />
+
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center bg-zinc-900/20 hover:bg-zinc-900/40 transition-colors cursor-pointer group"
+          >
             <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Upload className="w-6 h-6 text-zinc-400" />
             </div>
@@ -158,32 +236,57 @@ export default function IncidentReportForm() {
             <p className="text-xs text-zinc-500 mt-1 uppercase tracking-wider">SVG, PNG, JPG or PDF (MAX. 10MB)</p>
           </div>
 
-          {/* File Preview Card */}
-          <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-zinc-800 p-2 rounded-lg">
-                <Upload className="w-4 h-4 text-zinc-500" />
+          {/* Render file list */}
+          <div className="space-y-3">
+            {files.map((file, index) => (
+              <div key={index} className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-4 flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center gap-4">
+                  <div className="bg-zinc-800 p-2 rounded-lg">
+                    <Upload className="w-4 h-4 text-zinc-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{file.name}</p>
+                    <p className="text-xs text-zinc-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  type="button"
+                  onClick={() => removeFile(index)} 
+                  className="text-zinc-500 hover:text-red-500 hover:bg-red-500/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
-              <div>
-                <p className="text-sm font-medium">evidence_photo_01.jpg</p>
-                <p className="text-xs text-zinc-500">2.4 MB</p>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" className="text-zinc-500 hover:text-red-500">
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            ))}
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Action Buttons */}
         <div className="flex items-center justify-end gap-4 pt-6 border-t border-zinc-800">
-          <Button variant="ghost" className="px-8 h-12 font-bold text-zinc-400 hover:text-white">
+          <Button 
+            variant="ghost" 
+            type="button"
+            className="px-8 h-12 font-bold text-zinc-400 hover:text-white"
+            disabled={loading}
+          >
             <Save className="w-4 h-4 mr-2" />
             Save as Draft
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-500 px-8 h-12 font-bold rounded-lg shadow-lg shadow-blue-500/20">
-            Submit Report
-            <Send className="w-4 h-4 ml-2" />
+          <Button 
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-500 px-8 h-12 font-bold rounded-lg shadow-lg shadow-blue-500/20 min-w-[160px]"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <>
+                Submit Report
+                <Send className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
         </div>
       </form>
