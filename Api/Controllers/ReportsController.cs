@@ -23,7 +23,7 @@ namespace Api.Controllers
             return Ok(reports);
         }
         [HttpGet("{id}")]
-        public async Task<ActionResult<Report>> GetReport(int id)
+        public async Task<ActionResult<ReportResponseDto>> GetReport(int id)
         {
             var report = await _reportRepository.GetByIdAsync(id);
             if (report == null)

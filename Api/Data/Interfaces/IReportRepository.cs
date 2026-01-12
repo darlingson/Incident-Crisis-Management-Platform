@@ -4,7 +4,7 @@ namespace Api.Data.Interfaces
     using Api.DTOs.Reports;
 
     public interface IReportRepository {
-        Task<Report?> GetByIdAsync(int id);
+        Task<ReportResponseDto?> GetByIdAsync(int id);
         Task<IEnumerable<ReportResponseDto>> GetAllAsync();
         Task<Report> AddAsync(Report report);
         Task UpdateAsync(Report report);
