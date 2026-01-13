@@ -17,13 +17,13 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Report>>> GetReports()
+        public async Task<ActionResult<IEnumerable<ReportResponseDto>>> GetReports()
         {
             var reports = await _reportRepository.GetAllAsync();
             return Ok(reports);
         }
         [HttpGet("{id}")]
-        public async Task<ActionResult<Report>> GetReport(int id)
+        public async Task<ActionResult<ReportResponseDto>> GetReport(int id)
         {
             var report = await _reportRepository.GetByIdAsync(id);
             if (report == null)
@@ -119,6 +119,27 @@ namespace Api.Controllers
                 Message = "Status updated successfully",
                 NewStatus = dto.NewStatus.ToString()
             });
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateReport(int id, [FromBody] ReportUpdateDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _reportRepository.UpdateReportDetailsAsync(id, dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { Error = result.Message });
+            }
+
+            return Ok(new { Message = "Report updated successfully" });
+        }
+        [HttpGet("assignable-users")]
+        public async Task<ActionResult<IEnumerable<UserSelectionDto>>> GetAssignableUsers()
+        {
+            var users = await _reportRepository.GetAssignableUsersAsync();
+            return Ok(users);
         }
     }
 }
