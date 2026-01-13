@@ -175,5 +175,36 @@ namespace Api.Data.Repository
 
             return TransitionResult.Ok();
         }
+        public async Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync()
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .Select(u => new UserSelectionDto
+                {
+                    Id = u.Id,
+                    FullName = u.FirstName + " " + u.LastName,
+                    Email = u.Email
+                })
+                .ToListAsync();
+        }
+        public async Task<TransitionResult> UpdateReportDetailsAsync(int id, ReportUpdateDto updateDto)
+        {
+            var report = await _context.Reports.FindAsync(id);
+            if (report == null)
+                return TransitionResult.Failure($"Report {id} not found.");
+
+            report.Title = updateDto.Title;
+            report.Narrative = updateDto.Narrative;
+            report.Impact = updateDto.Impact;
+            report.Location = updateDto.Location;
+            report.Description = updateDto.Description;
+            report.AssignedTo = updateDto.AssignedTo;
+            report.Type = updateDto.Type;
+            
+            report.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return TransitionResult.Ok();
+        }
     }
 }

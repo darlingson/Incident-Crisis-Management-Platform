@@ -12,5 +12,7 @@ namespace Api.Data.Interfaces
         Task SaveChangesAsync();
         Task<Report?> FindDuplicateAsync(string type, string location, DateTime currentTime);
         Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes);
+        Task<TransitionResult> UpdateReportDetailsAsync(int id, ReportUpdateDto updateDto);
+        Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync();
     }
 }

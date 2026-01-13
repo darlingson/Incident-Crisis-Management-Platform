@@ -120,5 +120,26 @@ namespace Api.Controllers
                 NewStatus = dto.NewStatus.ToString()
             });
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateReport(int id, [FromBody] ReportUpdateDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _reportRepository.UpdateReportDetailsAsync(id, dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { Error = result.Message });
+            }
+
+            return Ok(new { Message = "Report updated successfully" });
+        }
+        [HttpGet("assignable-users")]
+        public async Task<ActionResult<IEnumerable<UserSelectionDto>>> GetAssignableUsers()
+        {
+            var users = await _reportRepository.GetAssignableUsersAsync();
+            return Ok(users);
+        }
     }
 }
