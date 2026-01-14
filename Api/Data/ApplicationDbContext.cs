@@ -18,6 +18,10 @@ namespace Api.Data
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<ReportCategories> ReportCategories => Set<ReportCategories>();
         public DbSet<ReportStatusHistory> ReportStatusHistories => Set<ReportStatusHistory>();
+        public DbSet<PostIncidentReview> PostIncidentReviews => Set<PostIncidentReview>();
+        public DbSet<RecoveryStep> RecoverySteps => Set<RecoveryStep>();
+        public DbSet<ContributingFactor> ContributingFactors => Set<ContributingFactor>();
+        public DbSet<PreventiveAction> PreventiveActions => Set<PreventiveAction>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
