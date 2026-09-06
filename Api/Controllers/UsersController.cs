@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using Api.Models;
+using Api.Services.Interfaces;
 
 namespace Api.Controllers
 {
@@ -11,18 +9,18 @@ namespace Api.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserService _userService;
 
-        public UsersController(UserManager<ApplicationUser> userManager)
+        public UsersController(IUserService userService)
         {
-            _userManager = userManager;
+            _userService = userService;
         }
 
         [HttpGet]
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userManager.Users.ToListAsync();
+            var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
 
@@ -31,38 +29,25 @@ namespace Api.Controllers
         public async Task<IActionResult> GetProfile()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-             if (userId == null)
-                return NotFound();
-            var user = await _userManager.FindByIdAsync(userId);
-            
-            if (user == null)
+            if (userId == null)
                 return NotFound();
 
-            var roles = await _userManager.GetRolesAsync(user);
-            
-            return Ok(new
-            {
-                user.Id,
-                user.Email,
-                user.FirstName,
-                user.LastName,
-                user.CreatedAt,
-                Roles = roles
-            });
+            var result = await _userService.GetProfileAsync(userId);
+            if (!result.Succeeded)
+                return NotFound();
+
+            return Ok(result.Data);
         }
 
         [HttpPut("deactivate/{userId}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeactivateUser(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
+            var result = await _userService.DeactivateUserAsync(userId);
+            if (!result.Succeeded)
                 return NotFound();
 
-            user.IsActive = false;
-            await _userManager.UpdateAsync(user);
-
-            return Ok(new { message = "User deactivated successfully" });
+            return Ok(new { message = result.Message });
         }
     }
 }

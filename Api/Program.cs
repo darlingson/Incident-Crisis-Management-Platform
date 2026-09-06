@@ -70,6 +70,8 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IAuthService, Api.Services.AuthService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IUserService, Api.Services.UserService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IDbSeeder, Api.Services.DbSeeder>();
 builder.Services.AddScoped<Api.Services.Interfaces.ICategorySuggestionService, Api.Services.CategorySuggestionService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IFileStorageService, Api.Services.FileStorageService>();
 builder.Services.AddSingleton(TimeProvider.System);
@@ -116,43 +118,8 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-    string[] roleNames = { "Admin", "Moderator", "User" };
-
-    foreach (var roleName in roleNames)
-    {
-        var roleExist = await roleManager.RoleExistsAsync(roleName);
-        if (!roleExist)
-        {
-            await roleManager.CreateAsync(new ApplicationRole
-            {
-                Name = roleName,
-                Description = $"{roleName} role for the application"
-            });
-        }
-    }
-
-    var adminUser = await userManager.FindByEmailAsync("admin@Api.com");
-    if (adminUser == null)
-    {
-        var admin = new ApplicationUser
-        {
-            UserName = "admin@demoemail.com",
-            Email = "admin@demoemail.com",
-            FirstName = "Admin",
-            LastName = "User",
-            EmailConfirmed = true,
-            IsActive = true
-        };
-
-        var createAdmin = await userManager.CreateAsync(admin, "AdminPassword@123");
-        if (createAdmin.Succeeded)
-        {
-            await userManager.AddToRoleAsync(admin, "Admin");
-        }
-    }
+    var seeder = scope.ServiceProvider.GetRequiredService<Api.Services.Interfaces.IDbSeeder>();
+    await seeder.SeedAsync();
 }
 
 app.Run();
