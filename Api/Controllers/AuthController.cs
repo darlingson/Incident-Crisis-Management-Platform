@@ -1,13 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Api.Models;
-using Api.Services;
 using Api.DTOs;
-using Api.Data;
+using Api.Services.Interfaces;
 
 namespace Api.Controllers
 {
@@ -15,29 +10,13 @@ namespace Api.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly RoleManager<ApplicationRole> _roleManager;
-        private readonly IJwtService _jwtService;
-        private readonly ApplicationDbContext _context;
+        private readonly IAuthService _authService;
 
-        public AuthController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            RoleManager<ApplicationRole> roleManager,
-            IJwtService jwtService,
-            ApplicationDbContext context)
+        public AuthController(IAuthService authService)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _roleManager = roleManager;
-            _jwtService = jwtService;
-            _context = context;
+            _authService = authService;
         }
 
-        /// <summary>
-        /// Self-registration - anyone can create an account
-        /// </summary>
         [HttpPost("signup")]
         [AllowAnonymous]
         public async Task<IActionResult> SignUp([FromBody] SignUpDto model)
@@ -45,38 +24,18 @@ namespace Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = new ApplicationUser
+            var result = await _authService.SignUpAsync(model);
+            if (!result.Succeeded)
+                return BadRequest(new { Errors = result.Errors });
+
+            return Ok(new
             {
-                UserName = model.Email,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                EmailConfirmed = false
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, "User");
-                
-                var roles = await _userManager.GetRolesAsync(user);
-                var token = _jwtService.GenerateToken(user, roles);
-
-                return Ok(new 
-                { 
-                    Message = "User created successfully. Please check your email for confirmation.",
-                    Token = token,
-                    User = new { user.Id, user.Email, user.FirstName, user.LastName, Roles = roles } 
-                });
-            }
-
-            return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+                result.Message,
+                result.Token,
+                result.User
+            });
         }
 
-        /// <summary>
-        /// Admin-only registration of other users
-        /// </summary>
         [HttpPost("register-user")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto model)
@@ -84,84 +43,38 @@ namespace Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var roleExists = await _roleManager.RoleExistsAsync(model.Role);
-            if (!roleExists)
-                return BadRequest(new { message = $"Role '{model.Role}' does not exist" });
-
-            var user = new ApplicationUser
+            var result = await _authService.RegisterUserAsync(model);
+            if (!result.Succeeded)
             {
-                UserName = model.Email,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                EmailConfirmed = true
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, model.Role);
-                
-                var roles = await _userManager.GetRolesAsync(user);
-
-                return Ok(new 
-                { 
-                    Message = $"User created successfully with {model.Role} role",
-                    User = new { user.Id, user.Email, user.FirstName, user.LastName, Roles = roles } 
-                });
+                if (result.Message != null && result.Message.Contains("does not exist"))
+                    return BadRequest(new { message = result.Message });
+                return BadRequest(new { Errors = result.Errors });
             }
 
-            return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+            return Ok(new
+            {
+                result.Message,
+                result.User
+            });
         }
 
-        /// <summary>
-        /// Sign in / Login
-        /// </summary>
         [HttpPost("signin")]
         [AllowAnonymous]
         public async Task<IActionResult> SignIn([FromBody] SignInDto model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            
-            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
-                return Unauthorized(new { message = "Invalid email or password" });
+            var result = await _authService.SignInAsync(model);
+            if (!result.Succeeded)
+                return Unauthorized(new { message = result.Message });
 
-            if (!user.IsActive)
-                return Unauthorized(new { message = "Account is deactivated" });
-
-            if (!user.EmailConfirmed && !model.AllowUnconfirmedEmail)
-                return Unauthorized(new { message = "Email not confirmed. Please check your email." });
-
-            var roles = await _userManager.GetRolesAsync(user);
-            
-            var refreshToken = _jwtService.GenerateRefreshToken();
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await _userManager.UpdateAsync(user);
-
-            var token = _jwtService.GenerateToken(user, roles);
-
-            return Ok(new 
-            { 
-                Token = token,
-                RefreshToken = refreshToken,
+            return Ok(new
+            {
+                result.Token,
+                result.RefreshToken,
                 ExpiresIn = 60,
-                User = new { 
-                    user.Id, 
-                    user.Email, 
-                    user.FirstName, 
-                    user.LastName, 
-                    user.EmailConfirmed,
-                    user.IsActive,
-                    Roles = roles 
-                } 
+                result.User
             });
         }
 
-        /// <summary>
-        /// Logout - invalidates refresh token
-        /// </summary>
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
@@ -169,53 +82,26 @@ namespace Api.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId != null)
             {
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user != null)
-                {
-                    user.RefreshToken = null;
-                    user.RefreshTokenExpiryTime = null;
-                    await _userManager.UpdateAsync(user);
-                }
+                await _authService.LogoutAsync(userId);
             }
-
             return Ok(new { message = "Logged out successfully" });
         }
 
-        /// <summary>
-        /// Refresh access token using refresh token
-        /// </summary>
         [HttpPost("refresh-token")]
         [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto model)
         {
-            var principal = _jwtService.GetPrincipalFromExpiredToken(model.Token);
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _authService.RefreshTokenAsync(model);
+            if (!result.Succeeded)
+                return BadRequest(new { message = result.Message });
 
-            if (userId == null)
-                return BadRequest(new { message = "Invalid token" });
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null || user.RefreshToken != model.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-                return BadRequest(new { message = "Invalid refresh token" });
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var newToken = _jwtService.GenerateToken(user, roles);
-            var newRefreshToken = _jwtService.GenerateRefreshToken();
-
-            user.RefreshToken = newRefreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await _userManager.UpdateAsync(user);
-
-            return Ok(new 
-            { 
-                Token = newToken,
-                RefreshToken = newRefreshToken 
+            return Ok(new
+            {
+                result.Token,
+                result.RefreshToken
             });
         }
 
-        /// <summary>
-        /// Get current user info
-        /// </summary>
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetCurrentUser()
@@ -223,24 +109,10 @@ namespace Api.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
                 return NotFound();
-            var user = await _userManager.FindByIdAsync(userId);
-            
-            if (user == null)
+            var result = await _authService.GetCurrentUserAsync(userId);
+            if (!result.Succeeded)
                 return NotFound();
-
-            var roles = await _userManager.GetRolesAsync(user);
-            
-            return Ok(new
-            {
-                user.Id,
-                user.Email,
-                user.FirstName,
-                user.LastName,
-                user.EmailConfirmed,
-                user.IsActive,
-                user.CreatedAt,
-                Roles = roles
-            });
+            return Ok(result.User);
         }
     }
 }

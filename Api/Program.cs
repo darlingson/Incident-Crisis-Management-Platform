@@ -69,6 +69,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IAuthService, Api.Services.AuthService>();
 builder.Services.AddScoped<Api.Services.Interfaces.ICategorySuggestionService, Api.Services.CategorySuggestionService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IFileStorageService, Api.Services.FileStorageService>();
 builder.Services.AddSingleton(TimeProvider.System);
