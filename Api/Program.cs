@@ -20,6 +20,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+builder.Services.Configure<Api.Options.JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {

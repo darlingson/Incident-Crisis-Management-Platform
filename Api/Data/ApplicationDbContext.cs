@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Api.Models;
 
+using Api.Data.Interfaces;
+
 namespace Api.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string,
         IdentityUserClaim<string>, ApplicationUserRole, IdentityUserLogin<string>,
-        IdentityRoleClaim<string>, IdentityUserToken<string>>
+        IdentityRoleClaim<string>, IdentityUserToken<string>>, IApplicationDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

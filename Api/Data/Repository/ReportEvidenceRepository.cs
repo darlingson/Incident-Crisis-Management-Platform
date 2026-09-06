@@ -5,8 +5,8 @@ using Api.Models;
 using Microsoft.EntityFrameworkCore;
 public class ReportEvidenceRepository : IReportEvidenceRepository
 {
-    private readonly ApplicationDbContext _context;
-    public ReportEvidenceRepository(ApplicationDbContext context)
+    private readonly IApplicationDbContext _context;
+    public ReportEvidenceRepository(IApplicationDbContext context)
     {
         _context = context;
     }

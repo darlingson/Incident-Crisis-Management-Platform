@@ -6,9 +6,9 @@ namespace Api.Data.Repository
     using Microsoft.EntityFrameworkCore;
     public class ReportRepository : IReportRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
 
-        public ReportRepository(ApplicationDbContext context)
+        public ReportRepository(IApplicationDbContext context)
         {
             _context = context;
         }
