@@ -79,43 +79,8 @@ namespace Api.Data.Repository
         }
         public async Task<Report> AddAsync(Report report)
         {
-            var suggestedCategoryIds = GetSuggestedCategoryIds(report.Narrative ?? report.Description);
-            foreach (var categoryId in suggestedCategoryIds)
-            {
-                report.ReportCategories.Add(new ReportCategories
-                {
-                    CategoryId = categoryId
-                });
-            }
-            var NewReport = await _context.Reports.AddAsync(report);
-            return NewReport.Entity;
-        }
-        private List<int> GetSuggestedCategoryIds(string content)
-        {
-            var suggestions = new List<int>();
-            if (string.IsNullOrWhiteSpace(content)) return suggestions;
-
-            var text = content.ToLower();
-
-            if (text.Contains("leak") || text.Contains("plumbing") || text.Contains("elevator"))
-                suggestions.Add(2);
-
-            if (text.Contains("theft") || text.Contains("intruder") || text.Contains("unauthorized"))
-                suggestions.Add(3);
-
-            if (text.Contains("harassment") || text.Contains("bullying") || text.Contains("payroll"))
-                suggestions.Add(4);
-
-            if (text.Contains("slip") || text.Contains("fall") || text.Contains("hazard") || text.Contains("injury"))
-                suggestions.Add(5);
-
-            if (text.Contains("audit") || text.Contains("policy") || text.Contains("violation"))
-                suggestions.Add(6);
-
-            if (!suggestions.Any())
-                suggestions.Add(7);
-
-            return suggestions.Distinct().ToList();
+            var newReport = await _context.Reports.AddAsync(report);
+            return newReport.Entity;
         }
         public Task SaveChangesAsync()
         {
@@ -142,39 +107,16 @@ namespace Api.Data.Repository
                 .OrderByDescending(r => r.CreatedAt)
                 .FirstOrDefaultAsync();
         }
-        public async Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes)
+        public async Task<Report?> GetEntityByIdAsync(int id)
         {
-            var report = await _context.Reports.FindAsync(id);
-            if (report == null)
-                return TransitionResult.Failure($"Report with ID {id} not found.");
-
-            if (!ReportStatusWorkflow.CanTransition(report.Status, newStatus))
-                return TransitionResult.Failure($"Illegal transition: You cannot move an incident from {report.Status} to {newStatus}.");
-
-            if (newStatus == ReportStatus.Resolved && string.IsNullOrWhiteSpace(report.Impact))
-                return TransitionResult.Failure("Resolution failed: Impact assessment is required before an incident can be marked as Resolved.");
-
-            var history = new ReportStatusHistory
-            {
-                ReportId = report.Id,
-                OldStatus = report.Status,
-                NewStatus = newStatus,
-                ChangedBy = changedBy,
-                ChangedAt = DateTime.UtcNow,
-                TransitionNotes = transitionNotes
-            };
-
-            report.Status = newStatus;
-            report.UpdatedAt = DateTime.UtcNow;
-
-            if (newStatus == ReportStatus.Resolved)
-                report.ResolvedAt = DateTime.UtcNow;
-
-            _context.ReportStatusHistories.Add(history);
-            await _context.SaveChangesAsync();
-
-            return TransitionResult.Ok();
+            return await _context.Reports.FindAsync(id);
         }
+
+        public async Task AddStatusHistoryAsync(ReportStatusHistory history)
+        {
+            await _context.ReportStatusHistories.AddAsync(history);
+        }
+
         public async Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync()
         {
             return await _context.Users
@@ -186,25 +128,6 @@ namespace Api.Data.Repository
                     Email = u.Email
                 })
                 .ToListAsync();
-        }
-        public async Task<TransitionResult> UpdateReportDetailsAsync(int id, ReportUpdateDto updateDto)
-        {
-            var report = await _context.Reports.FindAsync(id);
-            if (report == null)
-                return TransitionResult.Failure($"Report {id} not found.");
-
-            report.Title = updateDto.Title;
-            report.Narrative = updateDto.Narrative;
-            report.Impact = updateDto.Impact;
-            report.Location = updateDto.Location;
-            report.Description = updateDto.Description;
-            report.AssignedTo = updateDto.AssignedTo;
-            report.Type = updateDto.Type;
-            
-            report.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-            return TransitionResult.Ok();
         }
     }
 }

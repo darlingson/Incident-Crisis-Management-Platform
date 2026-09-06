@@ -11,8 +11,8 @@ namespace Api.Data.Interfaces
         Task DeleteAsync(Report report);
         Task SaveChangesAsync();
         Task<Report?> FindDuplicateAsync(string type, string location, DateTime currentTime);
-        Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes);
-        Task<TransitionResult> UpdateReportDetailsAsync(int id, ReportUpdateDto updateDto);
+        Task<Report?> GetEntityByIdAsync(int id);
+        Task AddStatusHistoryAsync(ReportStatusHistory history);
         Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync();
     }
 }

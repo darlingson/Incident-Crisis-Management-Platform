@@ -69,6 +69,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IReportService, Api.Services.ReportService>();
 
 builder.Services.AddCors(options =>
 {

@@ -1,6 +1,5 @@
-using Api.Models;
-using Api.Data.Interfaces;
 using Api.DTOs.Reports;
+using Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
@@ -8,92 +7,43 @@ namespace Api.Controllers
     [ApiController]
     public class ReportsController : ControllerBase
     {
-        private readonly IReportRepository _reportRepository;
-        private readonly IReportEvidenceRepository _reportEvidenceRepository;
-        public ReportsController(IReportRepository reportRepository, IReportEvidenceRepository reportEvidenceRepository)
+        private readonly IReportService _reportService;
+        public ReportsController(IReportService reportService)
         {
-            _reportRepository = reportRepository;
-            _reportEvidenceRepository = reportEvidenceRepository;
+            _reportService = reportService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ReportResponseDto>>> GetReports()
         {
-            var reports = await _reportRepository.GetAllAsync();
+            var reports = await _reportService.GetAllAsync();
             return Ok(reports);
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<ReportResponseDto>> GetReport(int id)
         {
-            var report = await _reportRepository.GetByIdAsync(id);
+            var report = await _reportService.GetByIdAsync(id);
             if (report == null)
                 return NotFound();
             return Ok(report);
         }
         [HttpPost]
-        public async Task<ActionResult<Report>> CreateReport([FromForm] CreateReportDto dto)
+        public async Task<ActionResult<ReportResponseDto>> CreateReport([FromForm] CreateReportDto dto)
         {
-            var report = new Report
-            {
-                Title = dto.Title,
-                Type = dto.Type,
-                // Status = ReportStatus.Reported,
-                Location = dto.Location,
-                Narrative = dto.Narrative,
-                Impact = dto.Impact,
-                Description = dto.Description,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedBy = 1
-            };
-            var newReport = await _reportRepository.AddAsync(report);
-            await _reportRepository.SaveChangesAsync();
-
-            if (dto.EvidenceFiles != null && dto.EvidenceFiles.Any())
-            {
-                foreach (var file in dto.EvidenceFiles)
-                {
-                    if (file.Length > 0)
-                    {
-                        var fileName = await _reportEvidenceRepository.SaveEvidenceFileAsync(file);
-                        report.ReportEvidences.Add(new ReportEvidence
-                        {
-                            ReportId = report.Id,
-                            FilePath = fileName
-                        });
-                    }
-                }
-            }
-            await _reportRepository.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetReport), new { id = newReport.Id }, newReport);
+            var newReport = await _reportService.CreateReportAsync(dto);
+            var createdDto = await _reportService.GetByIdAsync(newReport.Id);
+            return CreatedAtAction(nameof(GetReport), new { id = newReport.Id }, createdDto ?? (object)newReport);
         }
         [HttpPost("check-duplicate")]
         public async Task<ActionResult<DuplicateCheckResponse>> CheckDuplicate(DuplicateCheckDto dto)
         {
-            var duplicate = await _reportRepository.FindDuplicateAsync(
-                dto.Type,
-                dto.Location,
-                DateTime.UtcNow
-            );
-
-            if (duplicate == null)
-            {
-                return Ok(new DuplicateCheckResponse { IsDuplicate = false });
-            }
-
-            return Ok(new DuplicateCheckResponse
-            {
-                IsDuplicate = true,
-                ExistingReportId = duplicate.Id,
-                CreatedAt = duplicate.CreatedAt,
-                Message = $"A similar {duplicate.Type} report already exists at this location.",
-                ExistingReport = duplicate
-            });
+            var result = await _reportService.CheckDuplicateAsync(dto);
+            return Ok(result);
         }
         [HttpGet("{id}/status")]
         public async Task<IActionResult> GetReportStatus(int id)
         {
-            var report = await _reportRepository.GetByIdAsync(id);
+            var report = await _reportService.GetReportStatusAsync(id);
 
             if (report == null) return NotFound();
 
@@ -101,13 +51,13 @@ namespace Api.Controllers
             {
                 report.Id,
                 report.Title,
-                Status = report.Status.ToString()
+                Status = report.Status
             });
         }
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> TransitionStatus(int id, [FromBody] StatusTransitionDto dto)
         {
-            var result = await _reportRepository.UpdateStatusAsync(id, dto.NewStatus, 1, dto.TransitionNotes);
+            var result = await _reportService.UpdateStatusAsync(id, dto.NewStatus, 1, dto.TransitionNotes);
 
             if (!result.Success)
             {
@@ -126,7 +76,7 @@ namespace Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _reportRepository.UpdateReportDetailsAsync(id, dto);
+            var result = await _reportService.UpdateReportDetailsAsync(id, dto);
 
             if (!result.Success)
             {
@@ -138,7 +88,7 @@ namespace Api.Controllers
         [HttpGet("assignable-users")]
         public async Task<ActionResult<IEnumerable<UserSelectionDto>>> GetAssignableUsers()
         {
-            var users = await _reportRepository.GetAssignableUsersAsync();
+            var users = await _reportService.GetAssignableUsersAsync();
             return Ok(users);
         }
     }
