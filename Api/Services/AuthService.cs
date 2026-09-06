@@ -10,16 +10,31 @@ namespace Api.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IJwtService _jwtService;
+        private readonly TimeProvider _timeProvider;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             RoleManager<ApplicationRole> roleManager,
-            IJwtService jwtService)
+            IJwtService jwtService,
+            TimeProvider timeProvider)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtService = jwtService;
+            _timeProvider = timeProvider;
         }
+
+        private static AuthUserDto ToDto(ApplicationUser user, IEnumerable<string> roles) => new()
+        {
+            Id = user.Id,
+            Email = user.Email ?? string.Empty,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            EmailConfirmed = user.EmailConfirmed,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt,
+            Roles = roles
+        };
 
         public async Task<AuthResult> SignUpAsync(SignUpDto dto)
         {
@@ -45,7 +60,7 @@ namespace Api.Services
             return new AuthResult(
                 true,
                 Token: token,
-                User: new { user.Id, user.Email, user.FirstName, user.LastName, Roles = roles },
+                User: ToDto(user, roles),
                 Roles: roles,
                 Message: "User created successfully. Please check your email for confirmation."
             );
@@ -79,7 +94,7 @@ namespace Api.Services
 
             return new AuthResult(
                 true,
-                User: new { user.Id, user.Email, user.FirstName, user.LastName, Roles = roles },
+                User: ToDto(user, roles),
                 Roles: roles,
                 Message: $"User created successfully with {dto.Role} role"
             );
@@ -106,7 +121,7 @@ namespace Api.Services
             var roles = await _userManager.GetRolesAsync(user);
             var refreshToken = _jwtService.GenerateRefreshToken();
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = _timeProvider.GetUtcNow().UtcDateTime.AddDays(7);
             await _userManager.UpdateAsync(user);
 
             var token = _jwtService.GenerateToken(user, roles);
@@ -115,16 +130,7 @@ namespace Api.Services
                 true,
                 Token: token,
                 RefreshToken: refreshToken,
-                User: new
-                {
-                    user.Id,
-                    user.Email,
-                    user.FirstName,
-                    user.LastName,
-                    user.EmailConfirmed,
-                    user.IsActive,
-                    Roles = roles
-                },
+                User: ToDto(user, roles),
                 Roles: roles,
                 Message: "Sign in successful"
             );
@@ -152,7 +158,7 @@ namespace Api.Services
             }
 
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= _timeProvider.GetUtcNow().UtcDateTime)
             {
                 return new AuthResult(false, Message: "Invalid refresh token");
             }
@@ -162,7 +168,7 @@ namespace Api.Services
             var newRefreshToken = _jwtService.GenerateRefreshToken();
 
             user.RefreshToken = newRefreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiryTime = _timeProvider.GetUtcNow().UtcDateTime.AddDays(7);
             await _userManager.UpdateAsync(user);
 
             return new AuthResult(true, Token: newToken, RefreshToken: newRefreshToken);
@@ -179,17 +185,7 @@ namespace Api.Services
             var roles = await _userManager.GetRolesAsync(user);
             return new AuthResult(
                 true,
-                User: new
-                {
-                    user.Id,
-                    user.Email,
-                    user.FirstName,
-                    user.LastName,
-                    user.EmailConfirmed,
-                    user.IsActive,
-                    user.CreatedAt,
-                    Roles = roles
-                },
+                User: ToDto(user, roles),
                 Roles: roles
             );
         }

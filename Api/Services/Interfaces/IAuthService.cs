@@ -6,7 +6,7 @@ namespace Api.Services.Interfaces
         bool Succeeded,
         string? Token = null,
         string? RefreshToken = null,
-        object? User = null,
+        AuthUserDto? User = null,
         IEnumerable<string>? Roles = null,
         IEnumerable<string>? Errors = null,
         string? Message = null

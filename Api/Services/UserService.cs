@@ -1,3 +1,4 @@
+using Api.DTOs;
 using Api.Models;
 using Api.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -14,9 +15,26 @@ namespace Api.Services
             _userManager = userManager;
         }
 
-        public async Task<IEnumerable<ApplicationUser>> GetAllUsersAsync()
+        public async Task<IEnumerable<AuthUserDto>> GetAllUsersAsync()
         {
-            return await _userManager.Users.ToListAsync();
+            var users = await _userManager.Users.ToListAsync();
+            var result = new List<AuthUserDto>();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                result.Add(new AuthUserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email ?? string.Empty,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    EmailConfirmed = user.EmailConfirmed,
+                    IsActive = user.IsActive,
+                    CreatedAt = user.CreatedAt,
+                    Roles = roles
+                });
+            }
+            return result;
         }
 
         public async Task<UserResult> GetProfileAsync(string userId)
@@ -26,15 +44,18 @@ namespace Api.Services
                 return new UserResult(false, Message: "User not found");
 
             var roles = await _userManager.GetRolesAsync(user);
-            return new UserResult(true, Data: new
+            var dto = new AuthUserDto
             {
-                user.Id,
-                user.Email,
-                user.FirstName,
-                user.LastName,
-                user.CreatedAt,
+                Id = user.Id,
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                EmailConfirmed = user.EmailConfirmed,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt,
                 Roles = roles
-            });
+            };
+            return new UserResult(true, Data: dto);
         }
 
         public async Task<UserResult> DeactivateUserAsync(string userId)

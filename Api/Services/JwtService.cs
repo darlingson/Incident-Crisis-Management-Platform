@@ -18,10 +18,12 @@ namespace Api.Services
     public class JwtService : IJwtService
     {
         private readonly JwtOptions _options;
+        private readonly TimeProvider _timeProvider;
 
-        public JwtService(IOptions<JwtOptions> options)
+        public JwtService(IOptions<JwtOptions> options, TimeProvider timeProvider)
         {
             _options = options.Value;
+            _timeProvider = timeProvider;
         }
         public string GenerateToken(ApplicationUser user, IList<string> roles)
         {
@@ -58,7 +60,7 @@ namespace Api.Services
                 issuer: _options.Issuer,
                 audience: _options.Audience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(_options.ExpireMinutes),
+                expires: _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(_options.ExpireMinutes),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

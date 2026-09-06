@@ -1,4 +1,4 @@
-using Api.Models;
+using Api.DTOs;
 
 namespace Api.Services.Interfaces
 {
@@ -6,7 +6,7 @@ namespace Api.Services.Interfaces
 
     public interface IUserService
     {
-        Task<IEnumerable<ApplicationUser>> GetAllUsersAsync();
+        Task<IEnumerable<AuthUserDto>> GetAllUsersAsync();
         Task<UserResult> GetProfileAsync(string userId);
         Task<UserResult> DeactivateUserAsync(string userId);
     }

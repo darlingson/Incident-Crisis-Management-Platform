@@ -16,8 +16,9 @@ public class DIPTests
     public void JwtService_ShouldDependOn_IOptions_Not_IConfiguration()
     {
         var ctor = typeof(JwtService).GetConstructors().First();
-        var paramType = ctor.GetParameters().First().ParameterType;
-        paramType.Should().Be(typeof(IOptions<JwtOptions>));
+        var paramTypes = ctor.GetParameters().Select(p => p.ParameterType).ToList();
+        paramTypes.Should().Contain(typeof(IOptions<JwtOptions>));
+        paramTypes.Should().Contain(typeof(TimeProvider));
     }
 
     [Fact]
@@ -46,7 +47,7 @@ public class DIPTests
             Audience = "test-audience",
             ExpireMinutes = 60
         });
-        var jwtService = new JwtService(options);
+        var jwtService = new JwtService(options, TimeProvider.System);
         var user = new ApplicationUser { Id = "u1", UserName = "test@test.com", Email = "test@test.com", FirstName = "Test", LastName = "User" };
         var token = jwtService.GenerateToken(user, new List<string> { "User" });
         token.Should().NotBeNullOrEmpty();

@@ -46,7 +46,7 @@ public class AuthServiceTests
             new System.Security.Claims.ClaimsIdentity(new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, "test-id") })
         ));
 
-        var service = new AuthService(userManager, roleMgr, jwtMock.Object);
+        var service = new AuthService(userManager, roleMgr, jwtMock.Object, TimeProvider.System);
         return (service, context, jwtMock);
     }
 

@@ -55,8 +55,17 @@ builder.Services.AddScoped<Api.Mappers.IReportMapper, Api.Mappers.ReportMapperIm
 builder.Services.AddScoped<Api.Services.Interfaces.IReportService, Api.Services.ReportService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IReportEvidenceService, Api.Services.ReportEvidenceService>();
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000", "https://localhost:3000" };
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
+    // Keep AllowAll for backward compat but not used by default
     options.AddPolicy("AllowAll", builder =>
     {
         builder.AllowAnyOrigin()
@@ -88,7 +97,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
