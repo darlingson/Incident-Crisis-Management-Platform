@@ -11,12 +11,15 @@ using Microsoft.AspNetCore.Http;
 public class ReportsControllerTests
 {
     private readonly Mock<IReportService> _mockService;
+    private readonly Mock<ICurrentUserService> _mockCurrentUser;
     private readonly ReportsController _controller;
 
     public ReportsControllerTests()
     {
         _mockService = new Mock<IReportService>();
-        _controller = new ReportsController(_mockService.Object);
+        _mockCurrentUser = new Mock<ICurrentUserService>();
+        _mockCurrentUser.Setup(m => m.GetUserId()).Returns("test-user");
+        _controller = new ReportsController(_mockService.Object, _mockCurrentUser.Object);
     }
 
     [Fact]

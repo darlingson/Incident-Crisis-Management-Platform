@@ -13,19 +13,22 @@ namespace Api.Services
         private readonly ICategorySuggestionService _categorySuggestionService;
         private readonly TimeProvider _timeProvider;
         private readonly IUserRepository _userRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public ReportService(
             IReportRepository reportRepository,
             IReportEvidenceService reportEvidenceService,
             ICategorySuggestionService categorySuggestionService,
             TimeProvider timeProvider,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            ICurrentUserService currentUserService)
         {
             _reportRepository = reportRepository;
             _reportEvidenceService = reportEvidenceService;
             _categorySuggestionService = categorySuggestionService;
             _timeProvider = timeProvider;
             _userRepository = userRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
@@ -53,7 +56,7 @@ namespace Api.Services
                 Description = dto.Description,
                 CreatedAt = now,
                 UpdatedAt = now,
-                CreatedBy = 1
+                CreatedBy = _currentUserService.GetUserId() ?? "system"
             };
 
             var suggestedCategoryIds = _categorySuggestionService.GetSuggestedCategoryIds(report.Narrative ?? report.Description);
@@ -79,7 +82,9 @@ namespace Api.Services
                         report.ReportEvidences.Add(new ReportEvidence
                         {
                             ReportId = report.Id,
-                            FilePath = fileName
+                            FilePath = fileName,
+                            CreatedBy = _currentUserService.GetUserId() ?? "system",
+                            CreatedAt = now
                         });
                     }
                 }
@@ -118,7 +123,7 @@ namespace Api.Services
             return report == null ? null : ReportMapper.ToDto(report);
         }
 
-        public async Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes)
+        public async Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, string changedBy, string? transitionNotes)
         {
             var report = await _reportRepository.GetEntityByIdAsync(id);
             if (report == null)

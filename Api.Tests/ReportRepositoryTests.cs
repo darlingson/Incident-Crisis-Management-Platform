@@ -7,6 +7,7 @@ using Api.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using Api.Services.Interfaces;
 public class ReportRepositoryTests
 {
     private async Task<ApplicationDbContext> GetDatabaseContext()
@@ -17,6 +18,19 @@ public class ReportRepositoryTests
         var databaseContext = new ApplicationDbContext(options);
         databaseContext.Database.EnsureCreated();
         return databaseContext;
+    }
+
+    private Api.Services.ReportService CreateReportService(ApplicationDbContext context, TimeProvider? timeProvider = null)
+    {
+        var repo = new ReportRepository(context);
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var currentUserMock = new Mock<ICurrentUserService>();
+        currentUserMock.Setup(m => m.GetUserId()).Returns("test-user");
+        return new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider ?? TimeProvider.System, userRepo, currentUserMock.Object);
     }
 
     [Fact]
@@ -97,14 +111,7 @@ public class ReportRepositoryTests
     public async Task AddAsync_ShouldAutoCategorize_WhenKeywordsArePresent_ViaService()
     {
         var context = await GetDatabaseContext();
-        var repository = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
-        var timeProvider = TimeProvider.System;
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider, userRepo);
+        var service = CreateReportService(context);
 
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
@@ -130,14 +137,7 @@ public class ReportRepositoryTests
     public async Task AddAsync_ShouldDefaultToOther_WhenNoKeywordsMatch_ViaService()
     {
         var context = await GetDatabaseContext();
-        var repository = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
-        var timeProvider = TimeProvider.System;
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider, userRepo);
+        var service = CreateReportService(context);
 
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
@@ -158,19 +158,12 @@ public class ReportRepositoryTests
     public async Task UpdateStatusAsync_ShouldFail_WhenResolvingWithoutImpact_ViaService()
     {
         var context = await GetDatabaseContext();
-        var repo = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
-        var timeProvider = TimeProvider.System;
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
+        var service = CreateReportService(context);
         var report = new Report { Id = 1, Status = ReportStatus.UnderInvestigation, Impact = "" };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
 
-        var result = await service.UpdateStatusAsync(1, ReportStatus.Resolved, 1, "Testing resolution");
+        var result = await service.UpdateStatusAsync(1, ReportStatus.Resolved, "test-user", "Testing resolution");
 
         result.Success.Should().BeFalse();
         result.Message.Should().Contain("Impact assessment is required");
@@ -180,44 +173,30 @@ public class ReportRepositoryTests
     public async Task UpdateStatusAsync_ShouldCreateHistoryRecord_OnSuccess_ViaService()
     {
         var context = await GetDatabaseContext();
-        var repo = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
-        var timeProvider = TimeProvider.System;
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
+        var service = CreateReportService(context);
         var report = new Report { Id = 1, Status = ReportStatus.Reported };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
 
-        await service.UpdateStatusAsync(1, ReportStatus.Acknowledged, 99, "Acknowledging now");
+        await service.UpdateStatusAsync(1, ReportStatus.Acknowledged, "user-99", "Acknowledging now");
 
         var history = await context.ReportStatusHistories.FirstOrDefaultAsync(h => h.ReportId == 1);
         history.Should().NotBeNull();
         history!.OldStatus.Should().Be(ReportStatus.Reported);
         history.NewStatus.Should().Be(ReportStatus.Acknowledged);
-        history.ChangedBy.Should().Be(99);
+        history.ChangedBy.Should().Be("user-99");
     }
     [Fact]
     public async Task UpdateStatusAsync_ShouldAllowReopeningClosedIncident_ViaService()
     {
         var context = await GetDatabaseContext();
-        var repo = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
-        var timeProvider = TimeProvider.System;
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
+        var service = CreateReportService(context);
         var oldDate = DateTime.UtcNow.AddDays(-5);
         var report = new Report { Id = 1, Status = ReportStatus.Closed, UpdatedAt = oldDate };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
 
-        var result = await service.UpdateStatusAsync(1, ReportStatus.UnderInvestigation, 1, "New evidence found");
+        var result = await service.UpdateStatusAsync(1, ReportStatus.UnderInvestigation, "test-user", "New evidence found");
 
         result.Success.Should().BeTrue();
         var updatedReport = await context.Reports.FindAsync(1);
@@ -280,16 +259,9 @@ public class ReportRepositoryTests
     public async Task ReportService_ShouldUseTimeProvider_ForTimestamps()
     {
         var context = await GetDatabaseContext();
-        var repo = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
         var fakeTime = new DateTimeOffset(new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc));
         var timeProvider = new TestTimeProvider(fakeTime);
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
+        var service = CreateReportService(context, timeProvider);
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
             Title = "Time test",
@@ -327,13 +299,7 @@ public class ReportRepositoryTests
     public async Task ReportService_GetAll_ShouldMapToDto()
     {
         var context = await GetDatabaseContext();
-        var repo = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, TimeProvider.System, userRepo);
+        var service = CreateReportService(context);
 
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
@@ -384,7 +350,7 @@ public class ReportRepositoryTests
         };
         report.ReportEvidences.Add(new ReportEvidence { FilePath = "a.png" });
         report.ReportCategories.Add(new ReportCategories { Category = new Category { Id = 5, Name = "safety" }, CategoryId = 5 });
-        report.StatusHistories.Add(new ReportStatusHistory { OldStatus = ReportStatus.Reported, NewStatus = ReportStatus.Acknowledged, ChangedBy = 1, ChangedAt = DateTime.UtcNow });
+        report.StatusHistories.Add(new ReportStatusHistory { OldStatus = ReportStatus.Reported, NewStatus = ReportStatus.Acknowledged, ChangedBy = "test-user", ChangedAt = DateTime.UtcNow });
 
         var dto = Api.Mappers.ReportMapper.ToDto(report);
         dto.Title.Should().Be("Mapper");
@@ -446,13 +412,7 @@ public class ReportRepositoryTests
     public void ReportService_ShouldImplementSegregatedInterfaces()
     {
         var context = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        var repo = new ReportRepository(context);
-        var evidenceRepo = new ReportEvidenceRepository(context);
-        var fileStorage = new Api.Services.FileStorageService();
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
-        var categoryService = new Api.Services.CategorySuggestionService();
-        var userRepo = new Api.Data.Repository.UserRepository(context);
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, TimeProvider.System, userRepo);
+        var service = CreateReportService(context);
         service.Should().BeAssignableTo<Api.Services.Interfaces.IReportQueryService>();
         service.Should().BeAssignableTo<Api.Services.Interfaces.IReportCommandService>();
         service.Should().BeAssignableTo<Api.Services.Interfaces.IReportWorkflowService>();

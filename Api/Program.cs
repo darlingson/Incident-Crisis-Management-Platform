@@ -70,10 +70,12 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User", "Moderator", "Admin"));
 });
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IAuthService, Api.Services.AuthService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IUserService, Api.Services.UserService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IDbSeeder, Api.Services.DbSeeder>();
+builder.Services.AddScoped<Api.Services.Interfaces.ICurrentUserService, Api.Services.CurrentUserService>();
 builder.Services.AddScoped<Api.Services.Interfaces.ICategorySuggestionService, Api.Services.CategorySuggestionService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IFileStorageService, Api.Services.FileStorageService>();
 builder.Services.AddSingleton(TimeProvider.System);

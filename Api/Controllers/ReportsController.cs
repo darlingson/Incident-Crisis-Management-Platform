@@ -1,16 +1,20 @@
 using Api.DTOs.Reports;
 using Api.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ReportsController : ControllerBase
     {
         private readonly IReportService _reportService;
-        public ReportsController(IReportService reportService)
+        private readonly ICurrentUserService _currentUserService;
+        public ReportsController(IReportService reportService, ICurrentUserService currentUserService)
         {
             _reportService = reportService;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet]
@@ -57,7 +61,8 @@ namespace Api.Controllers
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> TransitionStatus(int id, [FromBody] StatusTransitionDto dto)
         {
-            var result = await _reportService.UpdateStatusAsync(id, dto.NewStatus, 1, dto.TransitionNotes);
+            var userId = _currentUserService.GetUserId() ?? "system";
+            var result = await _reportService.UpdateStatusAsync(id, dto.NewStatus, userId, dto.TransitionNotes);
 
             if (!result.Success)
             {

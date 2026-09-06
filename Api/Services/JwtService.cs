@@ -29,6 +29,8 @@ namespace Api.Services
      
             if (string.IsNullOrEmpty(keyValue))
                 throw new InvalidOperationException("JWT Key is not configured");
+            if (Encoding.UTF8.GetByteCount(keyValue) < 32)
+                throw new InvalidOperationException("JWT Key must be at least 32 bytes for HmacSha256");
      
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -77,6 +79,8 @@ namespace Api.Services
             var keyValue = _options.Key;
             if (string.IsNullOrEmpty(keyValue))
                 throw new InvalidOperationException("JWT Key is not configured");
+            if (Encoding.UTF8.GetByteCount(keyValue) < 32)
+                throw new InvalidOperationException("JWT Key must be at least 32 bytes");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
             if (key == null)
                 throw new InvalidOperationException("JWT Key is not configured");

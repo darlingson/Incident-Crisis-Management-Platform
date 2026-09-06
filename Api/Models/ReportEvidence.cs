@@ -6,5 +6,5 @@ public class ReportEvidence
     public int ReportId { get; set; }
     public string FilePath { get; set; } = String.Empty;
     public DateTime CreatedAt { get; set; }
-    public int CreatedBy { get; set; }
+    public string CreatedBy { get; set; } = string.Empty;
 }
