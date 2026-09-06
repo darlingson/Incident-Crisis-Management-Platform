@@ -1,18 +1,19 @@
 using Api.Data.Interfaces;
 using Api.DTOs.Reports;
 using Api.Models;
+using Api.Services.Interfaces;
 
 namespace Api.Services
 {
-    public class ReportService : Interfaces.IReportService
+    public class ReportService : IReportService
     {
         private readonly IReportRepository _reportRepository;
-        private readonly IReportEvidenceRepository _reportEvidenceRepository;
+        private readonly IReportEvidenceService _reportEvidenceService;
 
-        public ReportService(IReportRepository reportRepository, IReportEvidenceRepository reportEvidenceRepository)
+        public ReportService(IReportRepository reportRepository, IReportEvidenceService reportEvidenceService)
         {
             _reportRepository = reportRepository;
-            _reportEvidenceRepository = reportEvidenceRepository;
+            _reportEvidenceService = reportEvidenceService;
         }
 
         public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
@@ -53,14 +54,14 @@ namespace Api.Services
             var newReport = await _reportRepository.AddAsync(report);
             await _reportRepository.SaveChangesAsync();
 
-            // Handle evidence files via repository (will be refactored to service in Part 2)
+            // Handle evidence files via service (SOLID: file IO in service layer)
             if (dto.EvidenceFiles != null && dto.EvidenceFiles.Any())
             {
                 foreach (var file in dto.EvidenceFiles)
                 {
                     if (file.Length > 0)
                     {
-                        var fileName = await _reportEvidenceRepository.SaveEvidenceFileAsync(file);
+                        var fileName = await _reportEvidenceService.SaveEvidenceFileAsync(file);
                         report.ReportEvidences.Add(new ReportEvidence
                         {
                             ReportId = report.Id,

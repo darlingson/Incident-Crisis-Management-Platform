@@ -33,23 +33,6 @@ public class ReportEvidenceRepository : IReportEvidenceRepository
         _context.ReportEvidences.Remove(reportEvidence);
         await _context.SaveChangesAsync();
     }
-    public async Task<string> SaveEvidenceFileAsync(IFormFile file)
-    {
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/evidence", fileName);
-        var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/evidence");
-
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
-        
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-        return fileName;
-    }
 
     public async Task SaveChangesAsync()
     {

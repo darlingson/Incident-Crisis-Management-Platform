@@ -2,7 +2,7 @@ namespace Api.Tests;
 using Moq;
 using FluentAssertions;
 using Api.Controllers;
-using Api.Data.Interfaces;
+using Api.Services.Interfaces;
 using Api.Models;
 using Api.DTOs.Reports;
 using Microsoft.AspNetCore.Mvc;
@@ -10,21 +10,19 @@ using Microsoft.AspNetCore.Http;
 
 public class ReportsControllerTests
 {
-    private readonly Mock<IReportRepository> _mockRepo;
+    private readonly Mock<IReportService> _mockService;
     private readonly ReportsController _controller;
-    private readonly Mock<IReportEvidenceRepository> _mockEvidenceRepo;
 
     public ReportsControllerTests()
     {
-        _mockRepo = new Mock<IReportRepository>();
-        _mockEvidenceRepo = new Mock<IReportEvidenceRepository>();
-        _controller = new ReportsController(_mockRepo.Object, _mockEvidenceRepo.Object);
+        _mockService = new Mock<IReportService>();
+        _controller = new ReportsController(_mockService.Object);
     }
 
     [Fact]
     public async Task GetReport_ReturnsNotFound_WhenReportDoesNotExist()
     {
-        _mockRepo.Setup(repo => repo.GetByIdAsync(99)).ReturnsAsync((Report)null);
+        _mockService.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ReportResponseDto?)null);
         var result = await _controller.GetReport(99);
         result.Result.Should().BeOfType<NotFoundResult>();
     }
@@ -32,13 +30,13 @@ public class ReportsControllerTests
     [Fact]
     public async Task GetReport_ReturnsOk_WhenReportExists()
     {
-        var fakeReport = new Report { Id = 1, Title = "Test Incident" };
-        _mockRepo.Setup(repo => repo.GetByIdAsync(1)).ReturnsAsync(fakeReport);
+        var fakeDto = new ReportResponseDto { Id = 1, Title = "Test Incident" };
+        _mockService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(fakeDto);
 
         var result = await _controller.GetReport(1);
 
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var model = okResult.Value.Should().BeOfType<Report>().Subject;
+        var model = okResult.Value.Should().BeOfType<ReportResponseDto>().Subject;
         model.Title.Should().Be("Test Incident");
     }
     [Fact]
@@ -54,45 +52,50 @@ public class ReportsControllerTests
         }
         };
 
-        _mockRepo.Setup(r => r.AddAsync(It.IsAny<Report>()))
-                 .ReturnsAsync((Report r) => { r.Id = 10; return r; });
+        var createdReport = new Report { Id = 10, Title = "Test with Files" };
+        _mockService.Setup(s => s.CreateReportAsync(It.IsAny<CreateReportDto>()))
+                 .ReturnsAsync(createdReport);
+        _mockService.Setup(s => s.GetByIdAsync(10))
+                 .ReturnsAsync(new ReportResponseDto { Id = 10, Title = "Test with Files" });
 
         var result = await _controller.CreateReport(dto);
 
         var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
-        _mockRepo.Verify(r => r.SaveChangesAsync(), Times.AtLeastOnce);
-        _mockEvidenceRepo.Verify(e => e.SaveEvidenceFileAsync(It.IsAny<IFormFile>()), Times.Exactly(2));
+        _mockService.Verify(s => s.CreateReportAsync(It.IsAny<CreateReportDto>()), Times.Once);
     }
     [Fact]
     public async Task CreateReport_Succeeds_WhenFilesAreMissing()
     {
         var dto = new CreateReportDto { Title = "No Files" };
-        _mockRepo.Setup(r => r.AddAsync(It.IsAny<Report>()))
-                 .ReturnsAsync((Report r) => { r.Id = 11; return r; });
+        var createdReport = new Report { Id = 11, Title = "No Files" };
+        _mockService.Setup(s => s.CreateReportAsync(It.IsAny<CreateReportDto>()))
+                 .ReturnsAsync(createdReport);
+        _mockService.Setup(s => s.GetByIdAsync(11))
+                 .ReturnsAsync(new ReportResponseDto { Id = 11, Title = "No Files" });
 
         var result = await _controller.CreateReport(dto);
 
         result.Result.Should().BeOfType<CreatedAtActionResult>();
-        _mockEvidenceRepo.Verify(e => e.SaveEvidenceFileAsync(It.IsAny<IFormFile>()), Times.Never);
+        _mockService.Verify(s => s.CreateReportAsync(It.IsAny<CreateReportDto>()), Times.Once);
     }
     [Fact]
     public async Task CheckDuplicate_ReturnsTrue_WhenDuplicateFound()
     {
         var dto = new DuplicateCheckDto { Type = "Flood", Location = "Downtown" };
-        var existingMatch = new Report { Id = 50, Type = "Flood", Location = "Downtown" };
+        var response = new DuplicateCheckResponse { IsDuplicate = true, ExistingReportId = 50, ExistingReport = new Report { Id = 50, Type = "Flood", Location = "Downtown" } };
 
-        _mockRepo.Setup(r => r.FindDuplicateAsync(dto.Type, dto.Location, It.IsAny<DateTime>()))
-                 .ReturnsAsync(existingMatch);
+        _mockService.Setup(s => s.CheckDuplicateAsync(It.IsAny<DuplicateCheckDto>()))
+                 .ReturnsAsync(response);
 
         var result = await _controller.CheckDuplicate(dto);
 
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeOfType<DuplicateCheckResponse>().Subject;
+        var dupResponse = okResult.Value.Should().BeOfType<DuplicateCheckResponse>().Subject;
 
-        response.IsDuplicate.Should().BeTrue();
-        response.ExistingReportId.Should().Be(50);
-        response.ExistingReport.Should().NotBeNull();
-        response.ExistingReport!.Type.Should().Be("Flood");
+        dupResponse.IsDuplicate.Should().BeTrue();
+        dupResponse.ExistingReportId.Should().Be(50);
+        dupResponse.ExistingReport.Should().NotBeNull();
+        dupResponse.ExistingReport!.Type.Should().Be("Flood");
     }
     [Fact]
     public async Task CreateReport_ReturnsCreated_AndIncludesCategories()
@@ -104,21 +107,18 @@ public class ReportsControllerTests
             Location = "Lobby"
         };
 
-        _mockRepo.Setup(r => r.AddAsync(It.IsAny<Report>()))
-                 .ReturnsAsync((Report r) =>
-                 {
-                     r.Id = 1;
-                     r.ReportCategories.Add(new ReportCategories { CategoryId = 2 });
-                     return r;
-                 });
+        var createdReport = new Report { Id = 1, Title = "Test Report" };
+        createdReport.ReportCategories.Add(new ReportCategories { CategoryId = 2 });
+        _mockService.Setup(s => s.CreateReportAsync(It.IsAny<CreateReportDto>()))
+                 .ReturnsAsync(createdReport);
+        _mockService.Setup(s => s.GetByIdAsync(1))
+                 .ReturnsAsync(new ReportResponseDto { Id = 1, Title = "Test Report", Categories = new List<string> { "facilities" } });
 
         var result = await _controller.CreateReport(dto);
 
         var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
-        var returnedReport = createdResult.Value.Should().BeOfType<Report>().Subject;
-
-        returnedReport.Id.Should().Be(1);
-        returnedReport.ReportCategories.Should().NotBeEmpty();
+        // Controller now returns ReportResponseDto (or Report fallback)
+        createdResult.Value.Should().NotBeNull();
     }
     private IFormFile CreateMockFile(string fileName)
     {

@@ -8,6 +8,5 @@ public interface IReportEvidenceRepository {
     Task<ReportEvidence> AddAsync(ReportEvidence reportEvidence);
     Task UpdateAsync(ReportEvidence reportEvidence);
     Task DeleteAsync(ReportEvidence reportEvidence);
-    Task<string> SaveEvidenceFileAsync(IFormFile file);
     Task SaveChangesAsync();
 }

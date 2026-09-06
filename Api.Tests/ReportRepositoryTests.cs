@@ -38,9 +38,11 @@ public class ReportRepositoryTests
     {
         var context = await GetDatabaseContext();
         var repo = new ReportEvidenceRepository(context);
+        var evidenceRepo = repo; // repository no longer handles files; test via service
+        var service = new Api.Services.ReportEvidenceService(evidenceRepo);
         var mockFile = CreateMockFile("evidence.png");
 
-        var fileName = await repo.SaveEvidenceFileAsync(mockFile);
+        var fileName = await service.SaveEvidenceFileAsync(mockFile);
 
         fileName.Should().EndWith(".png");
         Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/evidence")).Should().BeTrue();
@@ -90,21 +92,27 @@ public class ReportRepositoryTests
 
         result.Should().BeNull();
     }
+    // Business logic moved to ReportService: categorization now tested via service
     [Fact]
-    public async Task AddAsync_ShouldAutoCategorize_WhenKeywordsArePresent()
+    public async Task AddAsync_ShouldAutoCategorize_WhenKeywordsArePresent_ViaService()
     {
         var context = await GetDatabaseContext();
         var repository = new ReportRepository(context);
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
+        var service = new Api.Services.ReportService(repository, evidenceService);
 
-        var report = new Report
+        var dto = new Api.DTOs.Reports.CreateReportDto
         {
             Title = "Security Breach",
             Narrative = "An intruder was spotted near the server room.",
-            Description = "Possible entry by intruder"
+            Description = "Possible entry by intruder",
+            Type = "security",
+            Location = "Server Room",
+            Impact = "high"
         };
 
-        var result = await repository.AddAsync(report);
-        await repository.SaveChangesAsync();
+        var result = await service.CreateReportAsync(dto);
 
         var savedReport = await context.Reports
             .Include(r => r.ReportCategories)
@@ -115,43 +123,60 @@ public class ReportRepositoryTests
     }
 
     [Fact]
-    public async Task AddAsync_ShouldDefaultToOther_WhenNoKeywordsMatch()
+    public async Task AddAsync_ShouldDefaultToOther_WhenNoKeywordsMatch_ViaService()
     {
         var context = await GetDatabaseContext();
         var repository = new ReportRepository(context);
-        var report = new Report { Narrative = "Just a normal day, nothing specific happening." };
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
+        var service = new Api.Services.ReportService(repository, evidenceService);
 
-        var result = await repository.AddAsync(report);
-        await repository.SaveChangesAsync();
+        var dto = new Api.DTOs.Reports.CreateReportDto
+        {
+            Title = "Generic",
+            Narrative = "Just a normal day, nothing specific happening.",
+            Description = "Just a normal day",
+            Type = "other",
+            Location = "Lobby",
+            Impact = "low"
+        };
+
+        var result = await service.CreateReportAsync(dto);
 
         var savedReport = await context.Reports.Include(r => r.ReportCategories).FirstAsync();
         savedReport.ReportCategories.Should().Contain(rc => rc.CategoryId == 7);
     }
     [Fact]
-    public async Task UpdateStatusAsync_ShouldFail_WhenResolvingWithoutImpact()
+    public async Task UpdateStatusAsync_ShouldFail_WhenResolvingWithoutImpact_ViaService()
     {
         var context = await GetDatabaseContext();
         var repo = new ReportRepository(context);
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
+        var service = new Api.Services.ReportService(repo, evidenceService);
         var report = new Report { Id = 1, Status = ReportStatus.UnderInvestigation, Impact = "" };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
 
-        var result = await repo.UpdateStatusAsync(1, ReportStatus.Resolved, 1, "Testing resolution");
+        var result = await service.UpdateStatusAsync(1, ReportStatus.Resolved, 1, "Testing resolution");
 
         result.Success.Should().BeFalse();
         result.Message.Should().Contain("Impact assessment is required");
     }
 
     [Fact]
-    public async Task UpdateStatusAsync_ShouldCreateHistoryRecord_OnSuccess()
+    public async Task UpdateStatusAsync_ShouldCreateHistoryRecord_OnSuccess_ViaService()
     {
         var context = await GetDatabaseContext();
         var repo = new ReportRepository(context);
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
+        var service = new Api.Services.ReportService(repo, evidenceService);
         var report = new Report { Id = 1, Status = ReportStatus.Reported };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
 
-        await repo.UpdateStatusAsync(1, ReportStatus.Acknowledged, 99, "Acknowledging now");
+        await service.UpdateStatusAsync(1, ReportStatus.Acknowledged, 99, "Acknowledging now");
 
         var history = await context.ReportStatusHistories.FirstOrDefaultAsync(h => h.ReportId == 1);
         history.Should().NotBeNull();
@@ -160,16 +185,19 @@ public class ReportRepositoryTests
         history.ChangedBy.Should().Be(99);
     }
     [Fact]
-    public async Task UpdateStatusAsync_ShouldAllowReopeningClosedIncident()
+    public async Task UpdateStatusAsync_ShouldAllowReopeningClosedIncident_ViaService()
     {
         var context = await GetDatabaseContext();
         var repo = new ReportRepository(context);
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
+        var service = new Api.Services.ReportService(repo, evidenceService);
         var oldDate = DateTime.UtcNow.AddDays(-5);
         var report = new Report { Id = 1, Status = ReportStatus.Closed, UpdatedAt = oldDate };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
 
-        var result = await repo.UpdateStatusAsync(1, ReportStatus.UnderInvestigation, 1, "New evidence found");
+        var result = await service.UpdateStatusAsync(1, ReportStatus.UnderInvestigation, 1, "New evidence found");
 
         result.Success.Should().BeTrue();
         var updatedReport = await context.Reports.FindAsync(1);
