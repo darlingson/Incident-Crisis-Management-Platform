@@ -39,16 +39,15 @@ namespace Api.Data.Repository
         {
             return _context.SaveChangesAsync();
         }
-        public async Task UpdateAsync(Report report)
+        public Task UpdateAsync(Report report)
         {
             _context.Reports.Update(report);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
-        public async Task DeleteAsync(Report report)
+        public Task DeleteAsync(Report report)
         {
             _context.Reports.Remove(report);
-            await _context.SaveChangesAsync();
-
+            return Task.CompletedTask;
         }
         public async Task<Report?> FindDuplicateAsync(string type, string location, DateTime currentTime)
         {

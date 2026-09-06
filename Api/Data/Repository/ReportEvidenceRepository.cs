@@ -24,14 +24,15 @@ public class ReportEvidenceRepository : IReportEvidenceRepository
         await _context.ReportEvidences.AddAsync(reportEvidence);
         return reportEvidence;
     }
-    public async Task UpdateAsync(ReportEvidence reportEvidence)
+    public Task UpdateAsync(ReportEvidence reportEvidence)
     {
-        await _context.SaveChangesAsync();
+        _context.ReportEvidences.Update(reportEvidence);
+        return Task.CompletedTask;
     }
-    public async Task DeleteAsync(ReportEvidence reportEvidence)
+    public Task DeleteAsync(ReportEvidence reportEvidence)
     {
         _context.ReportEvidences.Remove(reportEvidence);
-        await _context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 
     public async Task SaveChangesAsync()

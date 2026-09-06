@@ -85,8 +85,16 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportReadRepository, ReportRepository>();
+builder.Services.AddScoped<IReportWriteRepository, ReportRepository>();
 builder.Services.AddScoped<IReportEvidenceRepository, ReportEvidenceRepository>();
+builder.Services.AddScoped<IReportEvidenceReadRepository, ReportEvidenceRepository>();
+builder.Services.AddScoped<IReportEvidenceWriteRepository, ReportEvidenceRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+// Segregated service interfaces (ISP) - same implementation, forward via factory to share instance per scope
+builder.Services.AddScoped<Api.Services.Interfaces.IReportQueryService>(sp => sp.GetRequiredService<Api.Services.Interfaces.IReportService>());
+builder.Services.AddScoped<Api.Services.Interfaces.IReportCommandService>(sp => sp.GetRequiredService<Api.Services.Interfaces.IReportService>());
+builder.Services.AddScoped<Api.Services.Interfaces.IReportWorkflowService>(sp => sp.GetRequiredService<Api.Services.Interfaces.IReportService>());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
