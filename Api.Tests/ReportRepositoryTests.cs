@@ -103,7 +103,8 @@ public class ReportRepositoryTests
         var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
         var categoryService = new Api.Services.CategorySuggestionService();
         var timeProvider = TimeProvider.System;
-        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider);
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider, userRepo);
 
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
@@ -135,7 +136,8 @@ public class ReportRepositoryTests
         var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
         var categoryService = new Api.Services.CategorySuggestionService();
         var timeProvider = TimeProvider.System;
-        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider);
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider, userRepo);
 
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
@@ -162,7 +164,8 @@ public class ReportRepositoryTests
         var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
         var categoryService = new Api.Services.CategorySuggestionService();
         var timeProvider = TimeProvider.System;
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
         var report = new Report { Id = 1, Status = ReportStatus.UnderInvestigation, Impact = "" };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
@@ -183,7 +186,8 @@ public class ReportRepositoryTests
         var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
         var categoryService = new Api.Services.CategorySuggestionService();
         var timeProvider = TimeProvider.System;
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
         var report = new Report { Id = 1, Status = ReportStatus.Reported };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
@@ -206,7 +210,8 @@ public class ReportRepositoryTests
         var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
         var categoryService = new Api.Services.CategorySuggestionService();
         var timeProvider = TimeProvider.System;
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
         var oldDate = DateTime.UtcNow.AddDays(-5);
         var report = new Report { Id = 1, Status = ReportStatus.Closed, UpdatedAt = oldDate };
         context.Reports.Add(report);
@@ -282,8 +287,9 @@ public class ReportRepositoryTests
         var categoryService = new Api.Services.CategorySuggestionService();
         var fakeTime = new DateTimeOffset(new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc));
         var timeProvider = new TestTimeProvider(fakeTime);
+        var userRepo = new Api.Data.Repository.UserRepository(context);
 
-        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider, userRepo);
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
             Title = "Time test",
@@ -296,6 +302,96 @@ public class ReportRepositoryTests
         var report = await service.CreateReportAsync(dto);
         report.CreatedAt.Should().Be(fakeTime.UtcDateTime);
         report.UpdatedAt.Should().Be(fakeTime.UtcDateTime);
+    }
+
+    // Fix 2: tests for SRP - mapper and user repo separation
+    [Fact]
+    public async Task ReportRepository_ShouldReturnEntities_WithDetails()
+    {
+        var context = await GetDatabaseContext();
+        var repo = new ReportRepository(context);
+        var report = new Report { Title = "Detail Test", Type = "other", Location = "Lab" };
+        report.ReportEvidences.Add(new ReportEvidence { FilePath = "evidence1.png" });
+        await repo.AddAsync(report);
+        await repo.SaveChangesAsync();
+
+        var all = await repo.GetAllWithDetailsAsync();
+        all.Should().Contain(r => r.Title == "Detail Test" && r.ReportEvidences.Any(e => e.FilePath == "evidence1.png"));
+
+        var byId = await repo.GetByIdWithDetailsAsync(report.Id);
+        byId.Should().NotBeNull();
+        byId!.ReportEvidences.Should().Contain(e => e.FilePath == "evidence1.png");
+    }
+
+    [Fact]
+    public async Task ReportService_GetAll_ShouldMapToDto()
+    {
+        var context = await GetDatabaseContext();
+        var repo = new ReportRepository(context);
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, TimeProvider.System, userRepo);
+
+        var dto = new Api.DTOs.Reports.CreateReportDto
+        {
+            Title = "Map Test",
+            Narrative = "leak plumbing",
+            Description = "leak",
+            Type = "facilities",
+            Location = "B1",
+            Impact = "high"
+        };
+        await service.CreateReportAsync(dto);
+
+        var allDtos = await service.GetAllAsync();
+        allDtos.Should().Contain(d => d.Title == "Map Test" && d.Categories.Contains("facilities"));
+
+        var singleDto = await service.GetByIdAsync(1);
+        singleDto.Should().NotBeNull();
+        singleDto!.EvidenceFiles.Should().BeOfType<List<string>>();
+    }
+
+    [Fact]
+    public async Task UserRepository_ShouldReturnAssignableUsers()
+    {
+        var context = await GetDatabaseContext();
+        var user = new Api.Models.ApplicationUser { Id = "u1", UserName = "test@test.com", Email = "test@test.com", FirstName = "Test", LastName = "User" };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var userRepo = new Api.Data.Repository.UserRepository(context);
+        var result = await userRepo.GetAssignableUsersAsync();
+        result.Should().Contain(u => u.Email == "test@test.com" && u.FullName == "Test User");
+    }
+
+    [Fact]
+    public void ReportMapper_ShouldMapCorrectly()
+    {
+        var report = new Report
+        {
+            Id = 1,
+            Title = "Mapper",
+            Type = "safety",
+            Status = ReportStatus.Reported,
+            Location = "X",
+            Narrative = "n",
+            Impact = "low",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        report.ReportEvidences.Add(new ReportEvidence { FilePath = "a.png" });
+        report.ReportCategories.Add(new ReportCategories { Category = new Category { Id = 5, Name = "safety" }, CategoryId = 5 });
+        report.StatusHistories.Add(new ReportStatusHistory { OldStatus = ReportStatus.Reported, NewStatus = ReportStatus.Acknowledged, ChangedBy = 1, ChangedAt = DateTime.UtcNow });
+
+        var dto = Api.Mappers.ReportMapper.ToDto(report);
+        dto.Title.Should().Be("Mapper");
+        dto.Status.Should().Be("Reported");
+        dto.EvidenceFiles.Should().Contain("a.png");
+        dto.Categories.Should().Contain("safety");
+        dto.History.Should().HaveCount(1);
     }
 
     private IFormFile CreateMockFile(string fileName)

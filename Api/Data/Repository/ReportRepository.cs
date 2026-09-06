@@ -3,7 +3,6 @@ namespace Api.Data.Repository
     using Api.Data.Interfaces;
     using Api.Models;
     using Api.Data;
-    using Api.DTOs.Reports;
     using Microsoft.EntityFrameworkCore;
     public class ReportRepository : IReportRepository
     {
@@ -13,69 +12,23 @@ namespace Api.Data.Repository
         {
             _context = context;
         }
-        public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
+        public async Task<IEnumerable<Report>> GetAllWithDetailsAsync()
         {
             return await _context.Reports
                 .AsNoTracking()
-                .Select(r => new ReportResponseDto
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Type = r.Type,
-                    Status = r.Status.ToString(),
-                    Location = r.Location,
-                    Narrative = r.Narrative,
-                    Impact = r.Impact,
-                    AssignedTo = r.AssignedTo,
-                    ResolvedAt = r.ResolvedAt,
-                    CreatedAt = r.CreatedAt,
-                    UpdatedAt = r.UpdatedAt,
-                    EvidenceFiles = r.ReportEvidences.Select(e => e.FilePath).ToList(),
-                    Categories = r.ReportCategories.Select(rc => rc.Category.Name).ToList(),
-                    History = r.StatusHistories
-                        .OrderByDescending(h => h.ChangedAt)
-                        .Select(h => new StatusHistoryDto
-                        {
-                            OldStatus = h.OldStatus.ToString(),
-                            NewStatus = h.NewStatus.ToString(),
-                            TransitionNotes = h.TransitionNotes,
-                            ChangedAt = h.ChangedAt,
-                            ChangedBy = h.ChangedBy
-                        }).ToList()
-                })
+                .Include(r => r.ReportEvidences)
+                .Include(r => r.ReportCategories).ThenInclude(rc => rc.Category)
+                .Include(r => r.StatusHistories)
                 .ToListAsync();
         }
-        public async Task<ReportResponseDto?> GetByIdAsync(int id)
+        public async Task<Report?> GetByIdWithDetailsAsync(int id)
         {
             return await _context.Reports
                 .AsNoTracking()
-                .Select(r => new ReportResponseDto
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Type = r.Type,
-                    Status = r.Status.ToString(),
-                    Location = r.Location,
-                    Narrative = r.Narrative,
-                    Impact = r.Impact,
-                    AssignedTo = r.AssignedTo,
-                    ResolvedAt = r.ResolvedAt,
-                    CreatedAt = r.CreatedAt,
-                    UpdatedAt = r.UpdatedAt,
-                    EvidenceFiles = r.ReportEvidences.Select(e => e.FilePath).ToList(),
-                    Categories = r.ReportCategories.Select(rc => rc.Category.Name).ToList(),
-                    History = r.StatusHistories
-                        .OrderByDescending(h => h.ChangedAt)
-                        .Select(h => new StatusHistoryDto
-                        {
-                            OldStatus = h.OldStatus.ToString(),
-                            NewStatus = h.NewStatus.ToString(),
-                            TransitionNotes = h.TransitionNotes,
-                            ChangedAt = h.ChangedAt,
-                            ChangedBy = h.ChangedBy
-                        }).ToList()
-                })
-            .FirstOrDefaultAsync(r => r.Id == id);
+                .Include(r => r.ReportEvidences)
+                .Include(r => r.ReportCategories).ThenInclude(rc => rc.Category)
+                .Include(r => r.StatusHistories)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
         public async Task<Report> AddAsync(Report report)
         {
@@ -117,17 +70,6 @@ namespace Api.Data.Repository
             await _context.ReportStatusHistories.AddAsync(history);
         }
 
-        public async Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync()
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .Select(u => new UserSelectionDto
-                {
-                    Id = u.Id,
-                    FullName = u.FirstName + " " + u.LastName,
-                    Email = u.Email
-                })
-                .ToListAsync();
-        }
+
     }
 }

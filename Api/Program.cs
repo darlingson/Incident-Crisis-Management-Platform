@@ -86,6 +86,7 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportEvidenceRepository, ReportEvidenceRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

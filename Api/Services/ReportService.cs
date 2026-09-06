@@ -1,5 +1,6 @@
 using Api.Data.Interfaces;
 using Api.DTOs.Reports;
+using Api.Mappers;
 using Api.Models;
 using Api.Services.Interfaces;
 
@@ -11,27 +12,32 @@ namespace Api.Services
         private readonly IReportEvidenceService _reportEvidenceService;
         private readonly ICategorySuggestionService _categorySuggestionService;
         private readonly TimeProvider _timeProvider;
+        private readonly IUserRepository _userRepository;
 
         public ReportService(
             IReportRepository reportRepository,
             IReportEvidenceService reportEvidenceService,
             ICategorySuggestionService categorySuggestionService,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            IUserRepository userRepository)
         {
             _reportRepository = reportRepository;
             _reportEvidenceService = reportEvidenceService;
             _categorySuggestionService = categorySuggestionService;
             _timeProvider = timeProvider;
+            _userRepository = userRepository;
         }
 
         public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
         {
-            return await _reportRepository.GetAllAsync();
+            var reports = await _reportRepository.GetAllWithDetailsAsync();
+            return ReportMapper.ToDto(reports);
         }
 
         public async Task<ReportResponseDto?> GetByIdAsync(int id)
         {
-            return await _reportRepository.GetByIdAsync(id);
+            var report = await _reportRepository.GetByIdWithDetailsAsync(id);
+            return report == null ? null : ReportMapper.ToDto(report);
         }
 
         public async Task<Report> CreateReportAsync(CreateReportDto dto)
@@ -108,7 +114,8 @@ namespace Api.Services
 
         public async Task<ReportResponseDto?> GetReportStatusAsync(int id)
         {
-            return await _reportRepository.GetByIdAsync(id);
+            var report = await _reportRepository.GetByIdWithDetailsAsync(id);
+            return report == null ? null : ReportMapper.ToDto(report);
         }
 
         public async Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes)
@@ -167,7 +174,7 @@ namespace Api.Services
 
         public async Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync()
         {
-            return await _reportRepository.GetAssignableUsersAsync();
+            return await _userRepository.GetAssignableUsersAsync();
         }
 
 
