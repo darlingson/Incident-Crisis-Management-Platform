@@ -9,11 +9,19 @@ namespace Api.Services
     {
         private readonly IReportRepository _reportRepository;
         private readonly IReportEvidenceService _reportEvidenceService;
+        private readonly ICategorySuggestionService _categorySuggestionService;
+        private readonly TimeProvider _timeProvider;
 
-        public ReportService(IReportRepository reportRepository, IReportEvidenceService reportEvidenceService)
+        public ReportService(
+            IReportRepository reportRepository,
+            IReportEvidenceService reportEvidenceService,
+            ICategorySuggestionService categorySuggestionService,
+            TimeProvider timeProvider)
         {
             _reportRepository = reportRepository;
             _reportEvidenceService = reportEvidenceService;
+            _categorySuggestionService = categorySuggestionService;
+            _timeProvider = timeProvider;
         }
 
         public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
@@ -28,6 +36,7 @@ namespace Api.Services
 
         public async Task<Report> CreateReportAsync(CreateReportDto dto)
         {
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var report = new Report
             {
                 Title = dto.Title,
@@ -36,13 +45,12 @@ namespace Api.Services
                 Narrative = dto.Narrative,
                 Impact = dto.Impact,
                 Description = dto.Description,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = now,
+                UpdatedAt = now,
                 CreatedBy = 1
             };
 
-            // Business logic: auto-categorization (moved from repository)
-            var suggestedCategoryIds = GetSuggestedCategoryIds(report.Narrative ?? report.Description);
+            var suggestedCategoryIds = _categorySuggestionService.GetSuggestedCategoryIds(report.Narrative ?? report.Description);
             foreach (var categoryId in suggestedCategoryIds)
             {
                 report.ReportCategories.Add(new ReportCategories
@@ -80,7 +88,7 @@ namespace Api.Services
             var duplicate = await _reportRepository.FindDuplicateAsync(
                 dto.Type,
                 dto.Location,
-                DateTime.UtcNow
+                _timeProvider.GetUtcNow().UtcDateTime
             );
 
             if (duplicate == null)
@@ -115,21 +123,22 @@ namespace Api.Services
             if (newStatus == ReportStatus.Resolved && string.IsNullOrWhiteSpace(report.Impact))
                 return TransitionResult.Failure("Resolution failed: Impact assessment is required before an incident can be marked as Resolved.");
 
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
             var history = new ReportStatusHistory
             {
                 ReportId = report.Id,
                 OldStatus = report.Status,
                 NewStatus = newStatus,
                 ChangedBy = changedBy,
-                ChangedAt = DateTime.UtcNow,
+                ChangedAt = now,
                 TransitionNotes = transitionNotes
             };
 
             report.Status = newStatus;
-            report.UpdatedAt = DateTime.UtcNow;
+            report.UpdatedAt = now;
 
             if (newStatus == ReportStatus.Resolved)
-                report.ResolvedAt = DateTime.UtcNow;
+                report.ResolvedAt = now;
 
             await _reportRepository.AddStatusHistoryAsync(history);
             await _reportRepository.SaveChangesAsync();
@@ -150,7 +159,7 @@ namespace Api.Services
             report.Description = dto.Description;
             report.AssignedTo = dto.AssignedTo;
             report.Type = dto.Type;
-            report.UpdatedAt = DateTime.UtcNow;
+            report.UpdatedAt = _timeProvider.GetUtcNow().UtcDateTime;
 
             await _reportRepository.SaveChangesAsync();
             return TransitionResult.Ok();
@@ -161,32 +170,6 @@ namespace Api.Services
             return await _reportRepository.GetAssignableUsersAsync();
         }
 
-        private List<int> GetSuggestedCategoryIds(string content)
-        {
-            var suggestions = new List<int>();
-            if (string.IsNullOrWhiteSpace(content)) return suggestions;
 
-            var text = content.ToLower();
-
-            if (text.Contains("leak") || text.Contains("plumbing") || text.Contains("elevator"))
-                suggestions.Add(2);
-
-            if (text.Contains("theft") || text.Contains("intruder") || text.Contains("unauthorized"))
-                suggestions.Add(3);
-
-            if (text.Contains("harassment") || text.Contains("bullying") || text.Contains("payroll"))
-                suggestions.Add(4);
-
-            if (text.Contains("slip") || text.Contains("fall") || text.Contains("hazard") || text.Contains("injury"))
-                suggestions.Add(5);
-
-            if (text.Contains("audit") || text.Contains("policy") || text.Contains("violation"))
-                suggestions.Add(6);
-
-            if (!suggestions.Any())
-                suggestions.Add(7);
-
-            return suggestions.Distinct().ToList();
-        }
     }
 }

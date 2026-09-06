@@ -38,8 +38,8 @@ public class ReportRepositoryTests
     {
         var context = await GetDatabaseContext();
         var repo = new ReportEvidenceRepository(context);
-        var evidenceRepo = repo; // repository no longer handles files; test via service
-        var service = new Api.Services.ReportEvidenceService(evidenceRepo);
+        var fileStorage = new Api.Services.FileStorageService();
+        var service = new Api.Services.ReportEvidenceService(repo, fileStorage);
         var mockFile = CreateMockFile("evidence.png");
 
         var fileName = await service.SaveEvidenceFileAsync(mockFile);
@@ -99,8 +99,11 @@ public class ReportRepositoryTests
         var context = await GetDatabaseContext();
         var repository = new ReportRepository(context);
         var evidenceRepo = new ReportEvidenceRepository(context);
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
-        var service = new Api.Services.ReportService(repository, evidenceService);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var timeProvider = TimeProvider.System;
+        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider);
 
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
@@ -128,8 +131,11 @@ public class ReportRepositoryTests
         var context = await GetDatabaseContext();
         var repository = new ReportRepository(context);
         var evidenceRepo = new ReportEvidenceRepository(context);
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
-        var service = new Api.Services.ReportService(repository, evidenceService);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var timeProvider = TimeProvider.System;
+        var service = new Api.Services.ReportService(repository, evidenceService, categoryService, timeProvider);
 
         var dto = new Api.DTOs.Reports.CreateReportDto
         {
@@ -152,8 +158,11 @@ public class ReportRepositoryTests
         var context = await GetDatabaseContext();
         var repo = new ReportRepository(context);
         var evidenceRepo = new ReportEvidenceRepository(context);
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
-        var service = new Api.Services.ReportService(repo, evidenceService);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var timeProvider = TimeProvider.System;
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
         var report = new Report { Id = 1, Status = ReportStatus.UnderInvestigation, Impact = "" };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
@@ -170,8 +179,11 @@ public class ReportRepositoryTests
         var context = await GetDatabaseContext();
         var repo = new ReportRepository(context);
         var evidenceRepo = new ReportEvidenceRepository(context);
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
-        var service = new Api.Services.ReportService(repo, evidenceService);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var timeProvider = TimeProvider.System;
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
         var report = new Report { Id = 1, Status = ReportStatus.Reported };
         context.Reports.Add(report);
         await context.SaveChangesAsync();
@@ -190,8 +202,11 @@ public class ReportRepositoryTests
         var context = await GetDatabaseContext();
         var repo = new ReportRepository(context);
         var evidenceRepo = new ReportEvidenceRepository(context);
-        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo);
-        var service = new Api.Services.ReportService(repo, evidenceService);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var timeProvider = TimeProvider.System;
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
         var oldDate = DateTime.UtcNow.AddDays(-5);
         var report = new Report { Id = 1, Status = ReportStatus.Closed, UpdatedAt = oldDate };
         context.Reports.Add(report);
@@ -204,11 +219,92 @@ public class ReportRepositoryTests
         updatedReport!.Status.Should().Be(ReportStatus.UnderInvestigation);
         updatedReport.UpdatedAt.Should().BeAfter(oldDate);
     }
+    // New tests for extracted SRP services (Fix 1)
+    [Theory]
+    [InlineData("leak in plumbing", 2)]
+    [InlineData("intruder theft", 3)]
+    [InlineData("harassment payroll", 4)]
+    [InlineData("slip hazard injury", 5)]
+    [InlineData("audit policy violation", 6)]
+    [InlineData("random text without keyword", 7)]
+    public void CategorySuggestionService_ShouldReturnExpectedCategory(string narrative, int expectedCategoryId)
+    {
+        var service = new Api.Services.CategorySuggestionService();
+        var result = service.GetSuggestedCategoryIds(narrative);
+        result.Should().Contain(expectedCategoryId);
+    }
+
+    [Fact]
+    public void CategorySuggestionService_ShouldReturnEmpty_ForNull()
+    {
+        var service = new Api.Services.CategorySuggestionService();
+        var result = service.GetSuggestedCategoryIds(null);
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task FileStorageService_ShouldSaveFile_AndReturnName()
+    {
+        var storage = new Api.Services.FileStorageService();
+        var mockFile = CreateMockFile("doc.pdf");
+        var fileName = await storage.SaveFileAsync(mockFile, "evidence");
+        fileName.Should().EndWith(".pdf");
+        // cleanup
+        if (Directory.Exists("wwwroot")) Directory.Delete("wwwroot", true);
+    }
+
+    [Fact]
+    public async Task FileStorageService_ShouldThrow_ForEmptyFile()
+    {
+        var storage = new Api.Services.FileStorageService();
+        var mockFile = new Mock<IFormFile>();
+        mockFile.Setup(f => f.Length).Returns(0);
+        mockFile.Setup(f => f.FileName).Returns("empty.txt");
+        Func<Task> act = async () => await storage.SaveFileAsync(mockFile.Object, "evidence");
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    private class TestTimeProvider : TimeProvider
+    {
+        private readonly DateTimeOffset _now;
+        public TestTimeProvider(DateTimeOffset now) => _now = now;
+        public override DateTimeOffset GetUtcNow() => _now;
+    }
+
+    [Fact]
+    public async Task ReportService_ShouldUseTimeProvider_ForTimestamps()
+    {
+        var context = await GetDatabaseContext();
+        var repo = new ReportRepository(context);
+        var evidenceRepo = new ReportEvidenceRepository(context);
+        var fileStorage = new Api.Services.FileStorageService();
+        var evidenceService = new Api.Services.ReportEvidenceService(evidenceRepo, fileStorage);
+        var categoryService = new Api.Services.CategorySuggestionService();
+        var fakeTime = new DateTimeOffset(new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc));
+        var timeProvider = new TestTimeProvider(fakeTime);
+
+        var service = new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider);
+        var dto = new Api.DTOs.Reports.CreateReportDto
+        {
+            Title = "Time test",
+            Narrative = "test",
+            Description = "test",
+            Type = "other",
+            Location = "Lab",
+            Impact = "low"
+        };
+        var report = await service.CreateReportAsync(dto);
+        report.CreatedAt.Should().Be(fakeTime.UtcDateTime);
+        report.UpdatedAt.Should().Be(fakeTime.UtcDateTime);
+    }
+
     private IFormFile CreateMockFile(string fileName)
     {
         var fileMock = new Mock<IFormFile>();
         fileMock.Setup(_ => _.FileName).Returns(fileName);
         fileMock.Setup(_ => _.Length).Returns(100);
+        fileMock.Setup(_ => _.CopyToAsync(It.IsAny<Stream>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
         return fileMock.Object;
     }
 }
