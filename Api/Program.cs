@@ -1,13 +1,11 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Api.Data.Interfaces;
 using Api.Data.Repository;
-using System.Text;
 using Api.Data;
 using Api.Models;
 using Api.Services;
+using Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,33 +33,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var keyValue = jwtSettings["Key"];
-if (string.IsNullOrEmpty(keyValue))
-    throw new InvalidOperationException("JWT Key is not configured");
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = key,
-        ValidateIssuer = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidateAudience = true,
-        ValidAudience = jwtSettings["Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddAuthorization(options =>
 {
@@ -79,6 +51,7 @@ builder.Services.AddScoped<Api.Services.Interfaces.ICurrentUserService, Api.Serv
 builder.Services.AddScoped<Api.Services.Interfaces.ICategorySuggestionService, Api.Services.CategorySuggestionService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IFileStorageService, Api.Services.FileStorageService>();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<Api.Mappers.IReportMapper, Api.Mappers.ReportMapperImpl>();
 builder.Services.AddScoped<Api.Services.Interfaces.IReportService, Api.Services.ReportService>();
 builder.Services.AddScoped<Api.Services.Interfaces.IReportEvidenceService, Api.Services.ReportEvidenceService>();
 
@@ -91,12 +64,14 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
-builder.Services.AddScoped<IReportRepository, ReportRepository>();
-builder.Services.AddScoped<IReportReadRepository, ReportRepository>();
-builder.Services.AddScoped<IReportWriteRepository, ReportRepository>();
-builder.Services.AddScoped<IReportEvidenceRepository, ReportEvidenceRepository>();
-builder.Services.AddScoped<IReportEvidenceReadRepository, ReportEvidenceRepository>();
-builder.Services.AddScoped<IReportEvidenceWriteRepository, ReportEvidenceRepository>();
+builder.Services.AddScoped<ReportRepository>();
+builder.Services.AddScoped<IReportRepository>(sp => sp.GetRequiredService<ReportRepository>());
+builder.Services.AddScoped<IReportReadRepository>(sp => sp.GetRequiredService<ReportRepository>());
+builder.Services.AddScoped<IReportWriteRepository>(sp => sp.GetRequiredService<ReportRepository>());
+builder.Services.AddScoped<ReportEvidenceRepository>();
+builder.Services.AddScoped<IReportEvidenceRepository>(sp => sp.GetRequiredService<ReportEvidenceRepository>());
+builder.Services.AddScoped<IReportEvidenceReadRepository>(sp => sp.GetRequiredService<ReportEvidenceRepository>());
+builder.Services.AddScoped<IReportEvidenceWriteRepository>(sp => sp.GetRequiredService<ReportEvidenceRepository>());
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Segregated service interfaces (ISP) - same implementation, forward via factory to share instance per scope
 builder.Services.AddScoped<Api.Services.Interfaces.IReportQueryService>(sp => sp.GetRequiredService<Api.Services.Interfaces.IReportService>());

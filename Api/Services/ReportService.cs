@@ -14,6 +14,7 @@ namespace Api.Services
         private readonly TimeProvider _timeProvider;
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IReportMapper _reportMapper;
 
         public ReportService(
             IReportRepository reportRepository,
@@ -21,7 +22,8 @@ namespace Api.Services
             ICategorySuggestionService categorySuggestionService,
             TimeProvider timeProvider,
             IUserRepository userRepository,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IReportMapper reportMapper)
         {
             _reportRepository = reportRepository;
             _reportEvidenceService = reportEvidenceService;
@@ -29,18 +31,19 @@ namespace Api.Services
             _timeProvider = timeProvider;
             _userRepository = userRepository;
             _currentUserService = currentUserService;
+            _reportMapper = reportMapper;
         }
 
         public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
         {
             var reports = await _reportRepository.GetAllWithDetailsAsync();
-            return ReportMapper.ToDto(reports);
+            return _reportMapper.ToDto(reports);
         }
 
         public async Task<ReportResponseDto?> GetByIdAsync(int id)
         {
             var report = await _reportRepository.GetByIdWithDetailsAsync(id);
-            return report == null ? null : ReportMapper.ToDto(report);
+            return report == null ? null : _reportMapper.ToDto(report);
         }
 
         public async Task<Report> CreateReportAsync(CreateReportDto dto)
@@ -120,7 +123,7 @@ namespace Api.Services
         public async Task<ReportResponseDto?> GetReportStatusAsync(int id)
         {
             var report = await _reportRepository.GetByIdWithDetailsAsync(id);
-            return report == null ? null : ReportMapper.ToDto(report);
+            return report == null ? null : _reportMapper.ToDto(report);
         }
 
         public async Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, string changedBy, string? transitionNotes)

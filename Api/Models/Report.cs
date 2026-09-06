@@ -20,30 +20,4 @@ namespace Api.Models
         public virtual ICollection<ReportCategories> ReportCategories { get; set; } = new List<ReportCategories>();
         public virtual ICollection<ReportStatusHistory> StatusHistories { get; set; } = new List<ReportStatusHistory>();
     }
-
-    public class Category
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = String.Empty;
-    }
-    public class ReportCategories
-    {
-        public int Id { get; set; }
-        public int ReportId { get; set; }
-        public int CategoryId { get; set; }
-
-        [System.Text.Json.Serialization.JsonIgnore]
-        public virtual Report Report { get; set; } = null!;
-        public virtual Category Category { get; set; } = null!;
-    }
-    public enum ReportStatus
-    {
-        Reported = 0,
-        Acknowledged = 1,
-        UnderInvestigation = 2,
-        Mitigation = 3,
-        Resolved = 4,
-        PostIncidentReview = 5,
-        Closed = 6
-    }
 }

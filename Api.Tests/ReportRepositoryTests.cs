@@ -30,7 +30,8 @@ public class ReportRepositoryTests
         var userRepo = new Api.Data.Repository.UserRepository(context);
         var currentUserMock = new Mock<ICurrentUserService>();
         currentUserMock.Setup(m => m.GetUserId()).Returns("test-user");
-        return new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider ?? TimeProvider.System, userRepo, currentUserMock.Object);
+        var mapper = new Api.Mappers.ReportMapperImpl();
+        return new Api.Services.ReportService(repo, evidenceService, categoryService, timeProvider ?? TimeProvider.System, userRepo, currentUserMock.Object, mapper);
     }
 
     [Fact]
