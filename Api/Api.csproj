@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <NuGetAudit>false</NuGetAudit>
     <NuGetAuditMode>direct</NuGetAuditMode>
+    <UserSecretsId>bacf9dba-71df-4072-813e-9ff2f77c5c5d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
