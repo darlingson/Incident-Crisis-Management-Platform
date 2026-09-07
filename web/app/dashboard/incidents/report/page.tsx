@@ -6,6 +6,7 @@ import {
   AlertCircle, Upload, Trash2, Send, Save, Loader2 
 } from "lucide-react";
 import { toast } from "sonner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,15 +101,11 @@ export default function IncidentReportForm() {
       </div>
 
       {/* Emergency Alert */}
-      <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4 flex items-center gap-4">
-        <div className="bg-destructive/10 p-2 rounded-full">
-          <AlertCircle className="w-4 h-4 text-destructive" />
-        </div>
-        <div className="text-sm">
-          <p className="font-medium text-foreground">Is this a life-threatening emergency?</p>
-          <p className="text-muted-foreground text-xs">If you or someone else is in immediate danger, please stop and call 911 immediately.</p>
-        </div>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="w-4 h-4" />
+        <AlertTitle>Is this a life-threatening emergency?</AlertTitle>
+        <AlertDescription>If you or someone else is in immediate danger, please stop and call 911 immediately.</AlertDescription>
+      </Alert>
 
       {/* Anonymous Mode Toggle */}
       <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">

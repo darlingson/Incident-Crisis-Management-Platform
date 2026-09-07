@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, AlertCircle, Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -105,10 +106,11 @@ export default function LoginPage() {
 
                 {/* Error Alert Box */}
                 {errorMessage && (
-                  <div className="flex items-center gap-3 p-3 text-sm border rounded-lg bg-destructive/10 border-destructive/20 text-destructive animate-in fade-in zoom-in duration-200">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <p>{errorMessage}</p>
-                  </div>
+                  <Alert variant="destructive" className="animate-in fade-in zoom-in duration-200">
+                    <AlertCircle className="w-4 h-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{errorMessage}</AlertDescription>
+                  </Alert>
                 )}
 
                 <div className="space-y-2">

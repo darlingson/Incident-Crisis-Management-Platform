@@ -6,6 +6,7 @@ import {
   ArrowRight, Edit3, AlertCircle, Clock, MapPin, 
   User, Shield, CheckCircle, ChevronRight, Paperclip
 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const StatusMap: Record<string, number> = {
   "Reported": 0, "Acknowledged": 1, "UnderInvestigation": 2,
@@ -108,9 +109,11 @@ export default function IncidentDetailsPage() {
         {/* Center Col: Timeline & Activity */}
         <main className="col-span-12 lg:col-span-6 space-y-6">
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-lg flex items-center gap-3">
-              <AlertCircle className="w-4 h-4" /> <span className="text-sm font-medium">{error}</span>
-            </div>
+            <Alert variant="destructive">
+              <AlertCircle className="w-4 h-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
           <div className="relative pl-8 border-l border-border space-y-8 ml-4">
