@@ -18,6 +18,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function IncidentReportForm() {
   const [loading, setLoading] = useState(false);
@@ -131,23 +132,15 @@ export default function IncidentReportForm() {
             <div className="flex items-center gap-3">
               <h3 className="text-base font-medium">Incident type</h3>
             </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <RadioGroup value={incidentType} onValueChange={setIncidentType} className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {types.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setIncidentType(t.id)}
-                className={`flex flex-col items-center justify-center p-6 rounded-lg border transition-colors gap-3 ${
-                  incidentType === t.id 
-                  ? "bg-primary/10 border-primary text-primary" 
-                  : "bg-card border-border text-muted-foreground hover:bg-muted"
-                }`}
-              >
+              <Label key={t.id} htmlFor={`type-${t.id}`} className={`flex flex-col items-center justify-center p-6 rounded-lg border transition-colors gap-3 cursor-pointer has-[[data-state=checked]]:bg-primary/10 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:text-primary bg-card border-border text-muted-foreground hover:bg-muted ${incidentType === t.id ? "bg-primary/10 border-primary text-primary" : ""}`}>
+                <RadioGroupItem value={t.id} id={`type-${t.id}`} className="sr-only" />
                 <t.icon className="w-5 h-5" />
                 <span className="text-xs font-medium">{t.id}</span>
-              </button>
+              </Label>
             ))}
-          </div>
+          </RadioGroup>
         </div>
 
         {/* Step 2: Incident Details */}
