@@ -30,18 +30,14 @@ export default function EmployeePortal() {
 
         <div className="flex flex-col space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">
-            Good afternoon, <span className="text-primary">Alex</span>
+            Good afternoon, Alex
           </h1>
           <p className="text-muted-foreground">
             Employee Portal • Incident Management
           </p>
         </div>
-        <Card className="relative overflow-hidden bg-card border-border shadow-sm">
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 p-6 opacity-5 pointer-events-none">
-            <Shield className="w-64 h-64 text-primary" />
-          </div>
-
-          <CardContent className="p-8 relative z-10">
+        <Card className="bg-card border-border shadow-sm">
+          <CardContent className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
               <div className="space-y-4">
@@ -99,7 +95,7 @@ export default function EmployeePortal() {
                           <p className="font-medium">Wi-Fi Connectivity Issues on 3rd Floor</p>
                           <Badge variant="outline" className="bg-severity-medium/10 text-severity-medium border-severity-medium/20">Under Review</Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground font-mono">REF: #INC-599 • SUBMITTED: TODAY 16:30</p>
+                        <p className="text-xs text-muted-foreground font-mono">#INC-599 · Submitted today, 16:30</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -114,7 +110,7 @@ export default function EmployeePortal() {
                           <p className="font-medium">Access Credentials Lost</p>
                           <Badge variant="secondary">Closed</Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground font-mono">REF: #INC-380 • SUBMITTED: 24H AGO</p>
+                        <p className="text-xs text-muted-foreground font-mono">#INC-380 · Submitted 24h ago</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -140,7 +136,7 @@ export default function EmployeePortal() {
                     <div className="flex items-center p-4 bg-card rounded-lg border border-border hover:border-primary/20 transition-colors cursor-help">
                       <Phone className="w-4 h-4 mr-4 text-primary" />
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide leading-none mb-1">Emergency Line</p>
+                        <p className="text-xs text-muted-foreground leading-none mb-1">Emergency line</p>
                         <p className="font-medium">EXT. 9110</p>
                       </div>
                     </div>
@@ -151,7 +147,7 @@ export default function EmployeePortal() {
                 <div className="flex items-center p-4 bg-card rounded-lg border border-border">
                   <Mail className="w-4 h-4 mr-4 text-muted-foreground" />
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide leading-none mb-1">Global Helpdesk</p>
+                    <p className="text-xs text-muted-foreground leading-none mb-1">Global helpdesk</p>
                     <p className="font-medium text-sm">support@crisiscmd.com</p>
                   </div>
                 </div>
@@ -159,7 +155,7 @@ export default function EmployeePortal() {
             </Card>
 
             <div className="space-y-4 px-1">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Compliance Resources</h3>
+              <h3 className="text-sm font-medium">Compliance resources</h3>
               <div className="grid gap-2">
                 {[
                   { name: "Global Incident Policy", icon: FileText },
@@ -179,14 +175,6 @@ export default function EmployeePortal() {
             </div>
 
             <Separator />
-
-            <Card className="bg-primary/5 border-primary/10">
-              <CardContent className="p-4">
-                <p className="text-xs text-primary/80 leading-relaxed italic">
-                  "Ensuring a safe workplace is a collective responsibility. All reports remain confidential under the Global Safety Act."
-                </p>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

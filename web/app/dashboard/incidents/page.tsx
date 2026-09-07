@@ -92,20 +92,18 @@ export default function IncidentOverview() {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid — critical dominant */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Critical Active", value: criticalCount, icon: AlertCircle, color: "text-destructive" },
-          { label: "Total Open", value: reports.length, icon: FolderOpen, color: "text-primary" },
-          { label: "Avg. Ack Time", value: "4m 30s", icon: Clock, color: "text-status-resolved" },
+          { label: "Critical active", value: criticalCount, icon: AlertCircle, color: "text-destructive", prominent: true },
+          { label: "Total open", value: reports.length, icon: FolderOpen, color: "text-primary" },
+          { label: "Avg. ack time", value: "4m 30s", icon: Clock, color: "text-status-resolved" },
           { label: "Unassigned", value: unassignedCount, icon: UserMinus, color: "text-severity-medium" },
         ].map((stat, i) => (
-          <div key={i} className="bg-card border border-border p-6 rounded-lg flex justify-between items-start">
+          <div key={i} className={`bg-card border border-border p-6 rounded-lg flex justify-between items-start ${stat.prominent ? "bg-destructive/5 border-l-4 border-l-severity-critical shadow-sm" : ""}`}>
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground tracking-wide">{stat.label}</p>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-semibold">{stat.value}</span>
-              </div>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <span className={`${stat.prominent ? "text-3xl font-semibold" : "text-2xl font-medium"}`}>{stat.value}</span>
             </div>
             <stat.icon className={`w-8 h-8 ${stat.color} opacity-20`} />
           </div>

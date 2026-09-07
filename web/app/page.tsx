@@ -71,8 +71,7 @@ export default function LoginPage() {
           </div>
 
           <h2 className="text-3xl font-semibold leading-tight tracking-tight">
-            Incident Management <br />
-            <span className="text-primary">Workspace</span>
+            Report, track, and resolve incidents across your organization.
           </h2>
 
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">

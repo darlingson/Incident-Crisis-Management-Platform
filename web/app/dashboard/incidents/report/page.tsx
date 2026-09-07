@@ -124,12 +124,13 @@ export default function IncidentReportForm() {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-8">
-        {/* Step 1: Incident Type */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-sm font-medium text-primary-foreground">1</div>
-            <h3 className="text-lg font-semibold">Incident Type</h3>
-          </div>
+        <div className="relative pl-8 border-l border-border ml-3 space-y-8">
+          {/* Step 1: Incident Type */}
+          <div className="space-y-6 relative">
+            <div className="absolute -left-[41px] top-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground">1</div>
+            <div className="flex items-center gap-3">
+              <h3 className="text-base font-medium">Incident type</h3>
+            </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {types.map((t) => (
               <button
@@ -150,10 +151,10 @@ export default function IncidentReportForm() {
         </div>
 
         {/* Step 2: Incident Details */}
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+          <div className="absolute -left-[41px] top-1 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-xs font-medium text-muted-foreground">2</div>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-sm font-medium text-primary-foreground">2</div>
-            <h3 className="text-lg font-semibold">Incident Details</h3>
+            <h3 className="text-base font-medium">Incident details</h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -209,10 +210,10 @@ export default function IncidentReportForm() {
         </div>
 
         {/* Step 3: Evidence & Files */}
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+          <div className="absolute -left-[41px] top-1 w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center text-xs font-medium text-muted-foreground">3</div>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-sm font-medium text-primary-foreground">3</div>
-            <h3 className="text-lg font-semibold">Evidence & Attachments</h3>
+            <h3 className="text-base font-medium">Evidence & attachments</h3>
           </div>
 
           {/* Hidden File Input */}
@@ -261,6 +262,7 @@ export default function IncidentReportForm() {
               </div>
             ))}
           </div>
+        </div>
         </div>
 
         {/* Action Buttons */}

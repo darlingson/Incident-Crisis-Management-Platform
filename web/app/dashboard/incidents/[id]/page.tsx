@@ -158,7 +158,7 @@ function DetailRow({ icon, label, value }: any) {
     <div className="flex items-start gap-3">
       <div className="text-muted-foreground mt-0.5">{icon}</div>
       <div>
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide leading-none mb-1">{label}</p>
+        <p className="text-xs text-muted-foreground mb-1">{label}</p>
         <p className="text-sm font-medium">{value}</p>
       </div>
     </div>
