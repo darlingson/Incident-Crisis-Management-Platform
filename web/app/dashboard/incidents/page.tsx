@@ -22,6 +22,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { 
   Select, 
   SelectContent, 
@@ -100,100 +110,102 @@ export default function IncidentOverview() {
           { label: "Avg. ack time", value: "4m 30s", icon: Clock, color: "text-status-resolved" },
           { label: "Unassigned", value: unassignedCount, icon: UserMinus, color: "text-severity-medium" },
         ].map((stat, i) => (
-          <div key={i} className={`bg-card border border-border p-6 rounded-lg flex justify-between items-start ${stat.prominent ? "bg-destructive/5 border-l-4 border-l-severity-critical shadow-sm" : ""}`}>
-            <div className="space-y-2">
+          <Card key={i} className={`p-6 flex justify-between items-start ${stat.prominent ? "bg-destructive/5 border-l-4 border-l-severity-critical shadow-sm" : ""}`}>
+            <CardContent className="p-0 space-y-2">
               <p className="text-xs text-muted-foreground">{stat.label}</p>
               <span className={`${stat.prominent ? "text-3xl font-semibold" : "text-2xl font-medium"}`}>{stat.value}</span>
-            </div>
+            </CardContent>
             <stat.icon className={`w-4 h-4 ${stat.color}`} />
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-card border border-border p-4 rounded-lg flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[300px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search by ID, title, affected service..." 
-            className="pl-10 h-9"
-          />
-        </div>
-        <Select defaultValue="all">
-          <SelectTrigger className="w-[140px] h-9">
-            <SelectValue placeholder="Severity" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Severity: All</SelectItem>
-            <SelectItem value="high">Critical</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select defaultValue="active">
-          <SelectTrigger className="w-[140px] h-9">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Status: Active</SelectItem>
-            <SelectItem value="resolved">Resolved</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" className="h-9">
-          <Calendar className="w-4 h-4 mr-2" /> Date Range
-        </Button>
-        <Button variant="ghost" size="icon" className="border border-border"><Filter className="w-4 h-4" /></Button>
-      </div>
+      <Card className="p-4">
+        <CardContent className="p-0 flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 min-w-[300px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by ID, title, affected service..." 
+              className="pl-10 h-9"
+            />
+          </div>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="Severity" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Severity: All</SelectItem>
+              <SelectItem value="high">Critical</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select defaultValue="active">
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Status: Active</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" className="h-9">
+            <Calendar className="w-4 h-4 mr-2" /> Date Range
+          </Button>
+          <Button variant="ghost" size="icon" className="border border-border"><Filter className="w-4 h-4" /></Button>
+        </CardContent>
+      </Card>
 
       {/* Table Container */}
-      <div className="border border-border rounded-lg bg-card overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-muted/50 border-b border-border text-xs font-medium text-muted-foreground">
-              <th className="px-6 py-3">ID</th>
-              <th className="px-6 py-3">Incident Title</th>
-              <th className="px-6 py-3">Severity</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3">Location</th>
-              <th className="px-6 py-3">Owner</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+      <Card className="overflow-hidden p-0">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead>ID</TableHead>
+              <TableHead>Incident Title</TableHead>
+              <TableHead>Severity</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Owner</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {reports.map((report) => (
-              <tr key={report.id} className="hover:bg-muted/50 transition-colors group">
-                <td className="px-6 py-4 text-sm font-medium text-muted-foreground">#INC-{report.id}</td>
-                <td className="px-6 py-4">
+              <TableRow key={report.id} className="hover:bg-muted/50">
+                <TableCell className="font-medium text-muted-foreground">#INC-{report.id}</TableCell>
+                <TableCell>
                   <div className="space-y-0.5">
                     <p className="text-sm font-medium">{report.title}</p>
                     <p className="text-xs text-muted-foreground truncate max-w-[250px]">{report.narrative}</p>
                   </div>
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell>
                   <Badge className={`rounded-full px-3 py-0.5 border text-xs font-medium ${getSeverityStyle(report.impact)}`}>
                     {report.impact}
                   </Badge>
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell>
                   <Badge variant="outline" className={`px-2.5 py-0.5 text-xs ${getStatusStyle(report.status)}`}>
                     {report.status}
                   </Badge>
-                </td>
-                <td className="px-6 py-4">
+                </TableCell>
+                <TableCell>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Globe className="w-4 h-4" />
                     <span className="text-xs font-medium">{report.location}</span>
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                   <div className="flex items-center gap-2">
-                     <div className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-medium">
-                       {report.assignedTo ? report.assignedTo[0] : "?"}
-                     </div>
-                   </div>
-                </td>
-              </tr>
+                </TableCell>
+                <TableCell>
+                     <Avatar className="w-6 h-6 border border-border">
+                       <AvatarFallback className="bg-muted text-xs font-medium">
+                         {report.assignedTo ? report.assignedTo[0] : "?"}
+                       </AvatarFallback>
+                     </Avatar>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         {/* Footer / Pagination */}
         <div className="bg-muted/30 border-t border-border px-6 py-3 flex items-center justify-between text-xs text-muted-foreground">
@@ -203,7 +215,7 @@ export default function IncidentOverview() {
             <Button variant="outline" size="sm">Next</Button>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
