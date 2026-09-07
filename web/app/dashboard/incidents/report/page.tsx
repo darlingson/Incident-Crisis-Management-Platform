@@ -233,8 +233,8 @@ export default function IncidentReportForm() {
             <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
               <Upload className="w-5 h-5 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium"><span className="text-primary">Click to upload</span> or drag and drop</p>
-            <p className="text-xs text-muted-foreground mt-1">SVG, PNG, JPG or PDF (MAX. 10MB)</p>
+            <p className="text-sm font-medium text-foreground">Click to upload or drag and drop</p>
+            <p className="text-xs text-muted-foreground mt-1">SVG, PNG, JPG or PDF (max 10MB)</p>
           </div>
 
           {/* Render file list */}

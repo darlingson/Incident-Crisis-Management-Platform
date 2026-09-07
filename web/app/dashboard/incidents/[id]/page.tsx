@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   ArrowRight, Edit3, AlertCircle, Clock, MapPin, 
-  User, Shield, CheckCircle, ChevronRight 
+  User, Shield, CheckCircle, ChevronRight, Paperclip
 } from 'lucide-react';
 
 const StatusMap: Record<string, number> = {
@@ -141,7 +141,9 @@ export default function IncidentDetailsPage() {
             <div className="space-y-3">
               {data.evidenceFiles.map((f: string, i: number) => (
                 <div key={i} className="p-3 bg-muted/30 border border-border rounded-lg flex items-center gap-3 group cursor-pointer hover:border-primary/20 transition-colors">
-                  <div className="p-2 bg-primary/10 text-primary rounded-md">📎</div>
+                  <div className="p-2 bg-primary/10 text-primary rounded-md">
+                    <Paperclip className="w-4 h-4" />
+                  </div>
                   <span className="text-xs truncate text-muted-foreground group-hover:text-foreground">{f}</span>
                 </div>
               ))}

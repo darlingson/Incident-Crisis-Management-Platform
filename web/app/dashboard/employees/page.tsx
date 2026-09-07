@@ -32,9 +32,6 @@ export default function EmployeePortal() {
           <h1 className="text-3xl font-semibold tracking-tight">
             Good afternoon, Alex
           </h1>
-          <p className="text-muted-foreground">
-            Employee Portal • Incident Management
-          </p>
         </div>
         <Card className="bg-card border-border shadow-sm">
           <CardContent className="p-8">

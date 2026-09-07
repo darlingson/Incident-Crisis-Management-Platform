@@ -105,7 +105,7 @@ export default function IncidentOverview() {
               <p className="text-xs text-muted-foreground">{stat.label}</p>
               <span className={`${stat.prominent ? "text-3xl font-semibold" : "text-2xl font-medium"}`}>{stat.value}</span>
             </div>
-            <stat.icon className={`w-8 h-8 ${stat.color} opacity-20`} />
+            <stat.icon className={`w-4 h-4 ${stat.color}`} />
           </div>
         ))}
       </div>
