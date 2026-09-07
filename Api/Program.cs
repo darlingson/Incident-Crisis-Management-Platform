@@ -1,13 +1,11 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Api.Data.Interfaces;
 using Api.Data.Repository;
-using System.Text;
 using Api.Data;
 using Api.Models;
 using Api.Services;
+using Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +18,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+builder.Services.Configure<Api.Options.JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {
@@ -33,33 +33,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var keyValue = jwtSettings["Key"];
-if (string.IsNullOrEmpty(keyValue))
-    throw new InvalidOperationException("JWT Key is not configured");
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = key,
-        ValidateIssuer = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidateAudience = true,
-        ValidAudience = jwtSettings["Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddAuthorization(options =>
 {
@@ -68,10 +42,30 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User", "Moderator", "Admin"));
 });
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IAuthService, Api.Services.AuthService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IUserService, Api.Services.UserService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IDbSeeder, Api.Services.DbSeeder>();
+builder.Services.AddScoped<Api.Services.Interfaces.ICurrentUserService, Api.Services.CurrentUserService>();
+builder.Services.AddScoped<Api.Services.Interfaces.ICategorySuggestionService, Api.Services.CategorySuggestionService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IFileStorageService, Api.Services.FileStorageService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<Api.Mappers.IReportMapper, Api.Mappers.ReportMapperImpl>();
+builder.Services.AddScoped<Api.Services.Interfaces.IReportService, Api.Services.ReportService>();
+builder.Services.AddScoped<Api.Services.Interfaces.IReportEvidenceService, Api.Services.ReportEvidenceService>();
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000", "https://localhost:3000" };
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
+    // Keep AllowAll for backward compat but not used by default
     options.AddPolicy("AllowAll", builder =>
     {
         builder.AllowAnyOrigin()
@@ -79,8 +73,19 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
-builder.Services.AddScoped<IReportRepository, ReportRepository>();
-builder.Services.AddScoped<IReportEvidenceRepository, ReportEvidenceRepository>();
+builder.Services.AddScoped<ReportRepository>();
+builder.Services.AddScoped<IReportRepository>(sp => sp.GetRequiredService<ReportRepository>());
+builder.Services.AddScoped<IReportReadRepository>(sp => sp.GetRequiredService<ReportRepository>());
+builder.Services.AddScoped<IReportWriteRepository>(sp => sp.GetRequiredService<ReportRepository>());
+builder.Services.AddScoped<ReportEvidenceRepository>();
+builder.Services.AddScoped<IReportEvidenceRepository>(sp => sp.GetRequiredService<ReportEvidenceRepository>());
+builder.Services.AddScoped<IReportEvidenceReadRepository>(sp => sp.GetRequiredService<ReportEvidenceRepository>());
+builder.Services.AddScoped<IReportEvidenceWriteRepository>(sp => sp.GetRequiredService<ReportEvidenceRepository>());
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+// Segregated service interfaces (ISP) - same implementation, forward via factory to share instance per scope
+builder.Services.AddScoped<Api.Services.Interfaces.IReportQueryService>(sp => sp.GetRequiredService<Api.Services.Interfaces.IReportService>());
+builder.Services.AddScoped<Api.Services.Interfaces.IReportCommandService>(sp => sp.GetRequiredService<Api.Services.Interfaces.IReportService>());
+builder.Services.AddScoped<Api.Services.Interfaces.IReportWorkflowService>(sp => sp.GetRequiredService<Api.Services.Interfaces.IReportService>());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -92,7 +97,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -101,43 +106,8 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-    string[] roleNames = { "Admin", "Moderator", "User" };
-
-    foreach (var roleName in roleNames)
-    {
-        var roleExist = await roleManager.RoleExistsAsync(roleName);
-        if (!roleExist)
-        {
-            await roleManager.CreateAsync(new ApplicationRole
-            {
-                Name = roleName,
-                Description = $"{roleName} role for the application"
-            });
-        }
-    }
-
-    var adminUser = await userManager.FindByEmailAsync("admin@Api.com");
-    if (adminUser == null)
-    {
-        var admin = new ApplicationUser
-        {
-            UserName = "admin@demoemail.com",
-            Email = "admin@demoemail.com",
-            FirstName = "Admin",
-            LastName = "User",
-            EmailConfirmed = true,
-            IsActive = true
-        };
-
-        var createAdmin = await userManager.CreateAsync(admin, "AdminPassword@123");
-        if (createAdmin.Succeeded)
-        {
-            await userManager.AddToRoleAsync(admin, "Admin");
-        }
-    }
+    var seeder = scope.ServiceProvider.GetRequiredService<Api.Services.Interfaces.IDbSeeder>();
+    await seeder.SeedAsync();
 }
 
 app.Run();

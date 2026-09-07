@@ -3,134 +3,51 @@ namespace Api.Data.Repository
     using Api.Data.Interfaces;
     using Api.Models;
     using Api.Data;
-    using Api.DTOs.Reports;
     using Microsoft.EntityFrameworkCore;
     public class ReportRepository : IReportRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IApplicationDbContext _context;
 
-        public ReportRepository(ApplicationDbContext context)
+        public ReportRepository(IApplicationDbContext context)
         {
             _context = context;
         }
-        public async Task<IEnumerable<ReportResponseDto>> GetAllAsync()
+        public async Task<IEnumerable<Report>> GetAllWithDetailsAsync()
         {
             return await _context.Reports
                 .AsNoTracking()
-                .Select(r => new ReportResponseDto
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Type = r.Type,
-                    Status = r.Status.ToString(),
-                    Location = r.Location,
-                    Narrative = r.Narrative,
-                    Impact = r.Impact,
-                    AssignedTo = r.AssignedTo,
-                    ResolvedAt = r.ResolvedAt,
-                    CreatedAt = r.CreatedAt,
-                    UpdatedAt = r.UpdatedAt,
-                    EvidenceFiles = r.ReportEvidences.Select(e => e.FilePath).ToList(),
-                    Categories = r.ReportCategories.Select(rc => rc.Category.Name).ToList(),
-                    History = r.StatusHistories
-                        .OrderByDescending(h => h.ChangedAt)
-                        .Select(h => new StatusHistoryDto
-                        {
-                            OldStatus = h.OldStatus.ToString(),
-                            NewStatus = h.NewStatus.ToString(),
-                            TransitionNotes = h.TransitionNotes,
-                            ChangedAt = h.ChangedAt,
-                            ChangedBy = h.ChangedBy
-                        }).ToList()
-                })
+                .Include(r => r.ReportEvidences)
+                .Include(r => r.ReportCategories).ThenInclude(rc => rc.Category)
+                .Include(r => r.StatusHistories)
                 .ToListAsync();
         }
-        public async Task<ReportResponseDto?> GetByIdAsync(int id)
+        public async Task<Report?> GetByIdWithDetailsAsync(int id)
         {
             return await _context.Reports
                 .AsNoTracking()
-                .Select(r => new ReportResponseDto
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Type = r.Type,
-                    Status = r.Status.ToString(),
-                    Location = r.Location,
-                    Narrative = r.Narrative,
-                    Impact = r.Impact,
-                    AssignedTo = r.AssignedTo,
-                    ResolvedAt = r.ResolvedAt,
-                    CreatedAt = r.CreatedAt,
-                    UpdatedAt = r.UpdatedAt,
-                    EvidenceFiles = r.ReportEvidences.Select(e => e.FilePath).ToList(),
-                    Categories = r.ReportCategories.Select(rc => rc.Category.Name).ToList(),
-                    History = r.StatusHistories
-                        .OrderByDescending(h => h.ChangedAt)
-                        .Select(h => new StatusHistoryDto
-                        {
-                            OldStatus = h.OldStatus.ToString(),
-                            NewStatus = h.NewStatus.ToString(),
-                            TransitionNotes = h.TransitionNotes,
-                            ChangedAt = h.ChangedAt,
-                            ChangedBy = h.ChangedBy
-                        }).ToList()
-                })
-            .FirstOrDefaultAsync(r => r.Id == id);
+                .Include(r => r.ReportEvidences)
+                .Include(r => r.ReportCategories).ThenInclude(rc => rc.Category)
+                .Include(r => r.StatusHistories)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
         public async Task<Report> AddAsync(Report report)
         {
-            var suggestedCategoryIds = GetSuggestedCategoryIds(report.Narrative ?? report.Description);
-            foreach (var categoryId in suggestedCategoryIds)
-            {
-                report.ReportCategories.Add(new ReportCategories
-                {
-                    CategoryId = categoryId
-                });
-            }
-            var NewReport = await _context.Reports.AddAsync(report);
-            return NewReport.Entity;
-        }
-        private List<int> GetSuggestedCategoryIds(string content)
-        {
-            var suggestions = new List<int>();
-            if (string.IsNullOrWhiteSpace(content)) return suggestions;
-
-            var text = content.ToLower();
-
-            if (text.Contains("leak") || text.Contains("plumbing") || text.Contains("elevator"))
-                suggestions.Add(2);
-
-            if (text.Contains("theft") || text.Contains("intruder") || text.Contains("unauthorized"))
-                suggestions.Add(3);
-
-            if (text.Contains("harassment") || text.Contains("bullying") || text.Contains("payroll"))
-                suggestions.Add(4);
-
-            if (text.Contains("slip") || text.Contains("fall") || text.Contains("hazard") || text.Contains("injury"))
-                suggestions.Add(5);
-
-            if (text.Contains("audit") || text.Contains("policy") || text.Contains("violation"))
-                suggestions.Add(6);
-
-            if (!suggestions.Any())
-                suggestions.Add(7);
-
-            return suggestions.Distinct().ToList();
+            var newReport = await _context.Reports.AddAsync(report);
+            return newReport.Entity;
         }
         public Task SaveChangesAsync()
         {
             return _context.SaveChangesAsync();
         }
-        public async Task UpdateAsync(Report report)
+        public Task UpdateAsync(Report report)
         {
             _context.Reports.Update(report);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
-        public async Task DeleteAsync(Report report)
+        public Task DeleteAsync(Report report)
         {
             _context.Reports.Remove(report);
-            await _context.SaveChangesAsync();
-
+            return Task.CompletedTask;
         }
         public async Task<Report?> FindDuplicateAsync(string type, string location, DateTime currentTime)
         {
@@ -142,69 +59,16 @@ namespace Api.Data.Repository
                 .OrderByDescending(r => r.CreatedAt)
                 .FirstOrDefaultAsync();
         }
-        public async Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes)
+        public async Task<Report?> GetEntityByIdAsync(int id)
         {
-            var report = await _context.Reports.FindAsync(id);
-            if (report == null)
-                return TransitionResult.Failure($"Report with ID {id} not found.");
-
-            if (!ReportStatusWorkflow.CanTransition(report.Status, newStatus))
-                return TransitionResult.Failure($"Illegal transition: You cannot move an incident from {report.Status} to {newStatus}.");
-
-            if (newStatus == ReportStatus.Resolved && string.IsNullOrWhiteSpace(report.Impact))
-                return TransitionResult.Failure("Resolution failed: Impact assessment is required before an incident can be marked as Resolved.");
-
-            var history = new ReportStatusHistory
-            {
-                ReportId = report.Id,
-                OldStatus = report.Status,
-                NewStatus = newStatus,
-                ChangedBy = changedBy,
-                ChangedAt = DateTime.UtcNow,
-                TransitionNotes = transitionNotes
-            };
-
-            report.Status = newStatus;
-            report.UpdatedAt = DateTime.UtcNow;
-
-            if (newStatus == ReportStatus.Resolved)
-                report.ResolvedAt = DateTime.UtcNow;
-
-            _context.ReportStatusHistories.Add(history);
-            await _context.SaveChangesAsync();
-
-            return TransitionResult.Ok();
+            return await _context.Reports.FindAsync(id);
         }
-        public async Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync()
+
+        public async Task AddStatusHistoryAsync(ReportStatusHistory history)
         {
-            return await _context.Users
-                .AsNoTracking()
-                .Select(u => new UserSelectionDto
-                {
-                    Id = u.Id,
-                    FullName = u.FirstName + " " + u.LastName,
-                    Email = u.Email
-                })
-                .ToListAsync();
+            await _context.ReportStatusHistories.AddAsync(history);
         }
-        public async Task<TransitionResult> UpdateReportDetailsAsync(int id, ReportUpdateDto updateDto)
-        {
-            var report = await _context.Reports.FindAsync(id);
-            if (report == null)
-                return TransitionResult.Failure($"Report {id} not found.");
 
-            report.Title = updateDto.Title;
-            report.Narrative = updateDto.Narrative;
-            report.Impact = updateDto.Impact;
-            report.Location = updateDto.Location;
-            report.Description = updateDto.Description;
-            report.AssignedTo = updateDto.AssignedTo;
-            report.Type = updateDto.Type;
-            
-            report.UpdatedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
-            return TransitionResult.Ok();
-        }
     }
 }

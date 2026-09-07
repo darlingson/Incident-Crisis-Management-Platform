@@ -25,6 +25,6 @@ namespace Api.DTOs.Reports
         public string NewStatus { get; set; } = string.Empty;
         public string? TransitionNotes { get; set; }
         public DateTime ChangedAt { get; set; }
-        public int ChangedBy { get; set; }
+        public string ChangedBy { get; set; } = string.Empty;
     }
 }

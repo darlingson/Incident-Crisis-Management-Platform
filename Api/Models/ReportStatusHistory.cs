@@ -8,7 +8,7 @@ namespace Api.Models
         public ReportStatus OldStatus { get; set; }
         public ReportStatus NewStatus { get; set; }
         
-        public int ChangedBy { get; set; }
+        public string ChangedBy { get; set; } = string.Empty;
         public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
         public string? TransitionNotes { get; set; }
 

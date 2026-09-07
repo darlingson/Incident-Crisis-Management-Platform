@@ -1,18 +1,8 @@
 namespace Api.Data.Interfaces
 {
     using Api.Models;
-    using Api.DTOs.Reports;
 
-    public interface IReportRepository {
-        Task<ReportResponseDto?> GetByIdAsync(int id);
-        Task<IEnumerable<ReportResponseDto>> GetAllAsync();
-        Task<Report> AddAsync(Report report);
-        Task UpdateAsync(Report report);
-        Task DeleteAsync(Report report);
-        Task SaveChangesAsync();
-        Task<Report?> FindDuplicateAsync(string type, string location, DateTime currentTime);
-        Task<TransitionResult> UpdateStatusAsync(int id, ReportStatus newStatus, int changedBy, string? transitionNotes);
-        Task<TransitionResult> UpdateReportDetailsAsync(int id, ReportUpdateDto updateDto);
-        Task<IEnumerable<UserSelectionDto>> GetAssignableUsersAsync();
+    public interface IReportRepository : IReportReadRepository, IReportWriteRepository
+    {
     }
 }

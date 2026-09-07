@@ -5,8 +5,8 @@ using Api.Models;
 using Microsoft.EntityFrameworkCore;
 public class ReportEvidenceRepository : IReportEvidenceRepository
 {
-    private readonly ApplicationDbContext _context;
-    public ReportEvidenceRepository(ApplicationDbContext context)
+    private readonly IApplicationDbContext _context;
+    public ReportEvidenceRepository(IApplicationDbContext context)
     {
         _context = context;
     }
@@ -24,31 +24,15 @@ public class ReportEvidenceRepository : IReportEvidenceRepository
         await _context.ReportEvidences.AddAsync(reportEvidence);
         return reportEvidence;
     }
-    public async Task UpdateAsync(ReportEvidence reportEvidence)
+    public Task UpdateAsync(ReportEvidence reportEvidence)
     {
-        await _context.SaveChangesAsync();
+        _context.ReportEvidences.Update(reportEvidence);
+        return Task.CompletedTask;
     }
-    public async Task DeleteAsync(ReportEvidence reportEvidence)
+    public Task DeleteAsync(ReportEvidence reportEvidence)
     {
         _context.ReportEvidences.Remove(reportEvidence);
-        await _context.SaveChangesAsync();
-    }
-    public async Task<string> SaveEvidenceFileAsync(IFormFile file)
-    {
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/evidence", fileName);
-        var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/evidence");
-
-        if (!Directory.Exists(directoryPath))
-        {
-            Directory.CreateDirectory(directoryPath);
-        }
-        
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-        return fileName;
+        return Task.CompletedTask;
     }
 
     public async Task SaveChangesAsync()
