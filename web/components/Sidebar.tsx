@@ -6,13 +6,23 @@ import {
   FileText, 
   Settings, 
   LogOut, 
-  Activity, 
-  Bell 
+  Activity
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+} from '@/components/ui/sidebar';
 
-export default async function Sidebar() {
+export default async function AppSidebar() {
   const cookieStore = await cookies();
   const role = cookieStore.get('userRole')?.value;
   const userInfoStr = cookieStore.get('userInfo')?.value;
@@ -27,53 +37,59 @@ export default async function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0">
-      {/* Brand Logo */}
-      <div className="p-6 flex items-center gap-3 border-b border-border">
-        <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-          <ShieldCheck className="w-4 h-4 text-primary-foreground" />
+    <Sidebar variant="sidebar" collapsible="offcanvas">
+      <SidebarHeader className="border-b border-border">
+        <div className="flex items-center gap-3 px-2 py-2">
+          <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+            <ShieldCheck className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <span className="font-semibold text-lg tracking-tight">IncidentDesk</span>
         </div>
-        <span className="font-semibold text-lg tracking-tight">IncidentDesk</span>
-      </div>
+      </SidebarHeader>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-4 space-y-1">
-        {navItems.filter(i => i.show).map((item) => (
-          <Link 
-            key={item.name} 
-            href={item.href} 
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors group"
-          >
-            <item.icon className="w-4 h-4 group-hover:text-primary" />
-            {item.name}
-          </Link>
-        ))}
-      </nav>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.filter(i => i.show).map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton asChild tooltip={item.name}>
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-      {/* Bottom Actions */}
-      <div className="px-4 space-y-1 mb-4">
-        <Link 
-          href="/dashboard/settings" 
-          className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-        >
-          <Settings className="w-4 h-4" />
-          Settings
-        </Link>
-        <form action="/api/logout" method="POST">
-          <button 
-            type="submit"
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Log Out
-          </button>
-        </form>
-      </div>
-
-      {/* Profile Section */}
-      <div className="p-4 border-t border-border bg-muted/30">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-border">
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link href="/dashboard/settings">
+                <Settings />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <form action="/api/logout" method="POST" className="w-full">
+              <SidebarMenuButton asChild className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                <button type="submit" className="w-full">
+                  <LogOut />
+                  <span>Log Out</span>
+                </button>
+              </SidebarMenuButton>
+            </form>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <SidebarSeparator />
+        <div className="flex items-center gap-3 px-2 py-2">
+          <Avatar className="h-8 w-8 border border-border">
             <AvatarImage src="" />
             <AvatarFallback className="bg-muted text-muted-foreground text-xs">
               {userInfo.firstName[0]}{userInfo.lastName[0]}
@@ -88,7 +104,7 @@ export default async function Sidebar() {
             </p>
           </div>
         </div>
-      </div>
-    </aside>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
