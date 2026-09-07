@@ -30,21 +30,20 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 
-// Helper to determine severity badge styles based on your data's "impact"
+// Severity/status use semantic tokens --severity-* / --status-* (single mapping)
 const getSeverityStyle = (impact: string) => {
   const i = impact?.toLowerCase();
-  if (i === "high" || i === "major") return "bg-red-500/10 text-red-500 border-red-500/20";
-  if (i === "medium" || i === "moderate") return "bg-orange-500/10 text-orange-500 border-orange-500/20";
-  return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+  if (i === "high" || i === "major") return "bg-severity-critical/10 text-severity-critical border-severity-critical/20";
+  if (i === "medium" || i === "moderate") return "bg-severity-medium/10 text-severity-medium border-severity-medium/20";
+  return "bg-severity-low/10 text-severity-low border-severity-low/20";
 };
 
-// Helper to determine status badge styles based on your data's "status"
 const getStatusStyle = (status: string) => {
   const s = status?.toLowerCase();
-  if (s === "reported") return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-  if (s === "underinvestigation" || s === "monitoring") return "bg-purple-500/10 text-purple-400 border-purple-500/20";
-  if (s === "resolved" || s === "closed") return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-  return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+  if (s === "reported") return "bg-status-reported/10 text-status-reported border-status-reported/20";
+  if (s === "underinvestigation" || s === "monitoring") return "bg-status-investigation/10 text-status-investigation border-status-investigation/20";
+  if (s === "resolved" || s === "closed") return "bg-status-resolved/10 text-status-resolved border-status-resolved/20";
+  return "bg-muted text-muted-foreground border-border";
 };
 
 export default function IncidentOverview() {
@@ -74,20 +73,20 @@ export default function IncidentOverview() {
   const unassignedCount = reports.filter(r => !r.assignedTo).length;
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 p-8 space-y-8 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-background text-foreground p-6 space-y-6 animate-in fade-in duration-300">
       {/* Header Section */}
       <div className="flex justify-between items-start">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Incident Overview</h1>
-          <p className="text-zinc-500 text-sm font-medium uppercase tracking-wider">
+          <h1 className="text-2xl font-semibold tracking-tight">Incident Overview</h1>
+          <p className="text-muted-foreground text-sm">
             Real-time dashboard for managing active and past incidents.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="bg-transparent border-zinc-800 text-zinc-300">
+          <Button variant="outline">
             <Download className="w-4 h-4 mr-2" /> Export
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6">
+          <Button>
             <Plus className="w-4 h-4 mr-2" /> Create Incident
           </Button>
         </div>
@@ -96,39 +95,34 @@ export default function IncidentOverview() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "CRITICAL ACTIVE", value: criticalCount, icon: AlertCircle, color: "text-red-500", trend: "+1" },
-          { label: "TOTAL OPEN", value: reports.length, icon: FolderOpen, color: "text-blue-500" },
-          { label: "AVG. ACK TIME", value: "4m 30s", icon: Clock, color: "text-emerald-500", trend: "-12%" },
-          { label: "UNASSIGNED", value: unassignedCount, icon: UserMinus, color: "text-orange-500" },
+          { label: "Critical Active", value: criticalCount, icon: AlertCircle, color: "text-destructive" },
+          { label: "Total Open", value: reports.length, icon: FolderOpen, color: "text-primary" },
+          { label: "Avg. Ack Time", value: "4m 30s", icon: Clock, color: "text-status-resolved" },
+          { label: "Unassigned", value: unassignedCount, icon: UserMinus, color: "text-severity-medium" },
         ].map((stat, i) => (
-          <div key={i} className="bg-zinc-900/40 border border-zinc-800 p-6 rounded-xl flex justify-between items-start">
+          <div key={i} className="bg-card border border-border p-6 rounded-lg flex justify-between items-start">
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{stat.label}</p>
+              <p className="text-xs font-medium text-muted-foreground tracking-wide">{stat.label}</p>
               <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold">{stat.value}</span>
-                {stat.trend && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${stat.trend.startsWith('+') ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                    {stat.trend}
-                  </span>
-                )}
+                <span className="text-2xl font-semibold">{stat.value}</span>
               </div>
             </div>
-            <stat.icon className={`w-10 h-10 ${stat.color} opacity-20`} />
+            <stat.icon className={`w-8 h-8 ${stat.color} opacity-20`} />
           </div>
         ))}
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-zinc-900/20 border border-zinc-800 p-4 rounded-xl flex flex-wrap gap-4 items-center">
+      <div className="bg-card border border-border p-4 rounded-lg flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[300px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="Search by ID, title, affected service..." 
-            className="bg-zinc-900/50 border-zinc-800 pl-10 h-10 text-sm"
+            className="pl-10 h-9"
           />
         </div>
         <Select defaultValue="all">
-          <SelectTrigger className="w-[140px] bg-zinc-900/50 border-zinc-800 h-10 text-sm">
+          <SelectTrigger className="w-[140px] h-9">
             <SelectValue placeholder="Severity" />
           </SelectTrigger>
           <SelectContent>
@@ -138,7 +132,7 @@ export default function IncidentOverview() {
           </SelectContent>
         </Select>
         <Select defaultValue="active">
-          <SelectTrigger className="w-[140px] bg-zinc-900/50 border-zinc-800 h-10 text-sm">
+          <SelectTrigger className="w-[140px] h-9">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -146,54 +140,54 @@ export default function IncidentOverview() {
             <SelectItem value="resolved">Resolved</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" className="bg-zinc-900/50 border-zinc-800 h-10">
+        <Button variant="outline" className="h-9">
           <Calendar className="w-4 h-4 mr-2" /> Date Range
         </Button>
-        <Button variant="ghost" size="icon" className="border border-zinc-800"><Filter className="w-4 h-4" /></Button>
+        <Button variant="ghost" size="icon" className="border border-border"><Filter className="w-4 h-4" /></Button>
       </div>
 
       {/* Table Container */}
-      <div className="border border-zinc-800 rounded-xl bg-zinc-900/20 overflow-hidden">
+      <div className="border border-border rounded-lg bg-card overflow-hidden">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-zinc-900/40 border-b border-zinc-800 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-              <th className="px-6 py-4">ID</th>
-              <th className="px-6 py-4">Incident Title</th>
-              <th className="px-6 py-4">Severity</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Location</th>
-              <th className="px-6 py-4">Owner</th>
+            <tr className="bg-muted/50 border-b border-border text-xs font-medium text-muted-foreground">
+              <th className="px-6 py-3">ID</th>
+              <th className="px-6 py-3">Incident Title</th>
+              <th className="px-6 py-3">Severity</th>
+              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3">Location</th>
+              <th className="px-6 py-3">Owner</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/50">
+          <tbody className="divide-y divide-border">
             {reports.map((report) => (
-              <tr key={report.id} className="hover:bg-zinc-800/20 transition-colors group">
-                <td className="px-6 py-5 text-sm font-medium text-zinc-500">#INC-{report.id}</td>
-                <td className="px-6 py-5">
+              <tr key={report.id} className="hover:bg-muted/50 transition-colors group">
+                <td className="px-6 py-4 text-sm font-medium text-muted-foreground">#INC-{report.id}</td>
+                <td className="px-6 py-4">
                   <div className="space-y-0.5">
-                    <p className="text-sm font-semibold">{report.title}</p>
-                    <p className="text-xs text-zinc-500 truncate max-w-[250px]">{report.narrative}</p>
+                    <p className="text-sm font-medium">{report.title}</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[250px]">{report.narrative}</p>
                   </div>
                 </td>
-                <td className="px-6 py-5">
-                  <Badge className={`rounded-full px-3 py-0.5 border font-semibold text-[10px] uppercase ${getSeverityStyle(report.impact)}`}>
-                    • {report.impact}
+                <td className="px-6 py-4">
+                  <Badge className={`rounded-full px-3 py-0.5 border text-xs font-medium ${getSeverityStyle(report.impact)}`}>
+                    {report.impact}
                   </Badge>
                 </td>
-                <td className="px-6 py-5">
-                  <Badge className={`rounded-md px-3 py-1 border font-medium text-xs ${getStatusStyle(report.status)}`}>
+                <td className="px-6 py-4">
+                  <Badge variant="outline" className={`px-2.5 py-0.5 text-xs ${getStatusStyle(report.status)}`}>
                     {report.status}
                   </Badge>
                 </td>
-                <td className="px-6 py-5">
-                  <div className="flex items-center gap-2 text-zinc-400">
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Globe className="w-4 h-4" />
                     <span className="text-xs font-medium">{report.location}</span>
                   </div>
                 </td>
-                <td className="px-6 py-5">
+                <td className="px-6 py-4">
                    <div className="flex items-center gap-2">
-                     <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[10px] text-zinc-500 font-bold">
+                     <div className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-medium">
                        {report.assignedTo ? report.assignedTo[0] : "?"}
                      </div>
                    </div>
@@ -204,11 +198,11 @@ export default function IncidentOverview() {
         </table>
 
         {/* Footer / Pagination */}
-        <div className="bg-zinc-900/40 border-t border-zinc-800 px-6 py-4 flex items-center justify-between text-xs text-zinc-500">
-          <p>Showing <span className="text-zinc-200 font-medium">1 to {reports.length}</span> of <span className="text-zinc-200 font-medium">{reports.length}</span> results</p>
+        <div className="bg-muted/30 border-t border-border px-6 py-3 flex items-center justify-between text-xs text-muted-foreground">
+          <p>Showing <span className="text-foreground font-medium">1 to {reports.length}</span> of <span className="text-foreground font-medium">{reports.length}</span> results</p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="h-8 bg-zinc-900/50 border-zinc-800 text-zinc-400">Previous</Button>
-            <Button variant="outline" size="sm" className="h-8 bg-zinc-900 border-zinc-700 text-zinc-200">Next</Button>
+            <Button variant="outline" size="sm">Previous</Button>
+            <Button variant="outline" size="sm">Next</Button>
           </div>
         </div>
       </div>

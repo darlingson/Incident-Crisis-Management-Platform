@@ -60,43 +60,34 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="flex min-h-screen items-center justify-center bg-black text-white"
-      style={{
-        backgroundImage: `url(https://images5.alphacoders.com/353/thumb-1920-353018.jpg)`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundBlendMode: "overlay",
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-      }}
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl w-full px-8">
+    <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl w-full px-6 py-8">
 
         {/* Left Side: Branding */}
-        <div className="flex flex-col justify-center space-y-8">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20">
-              <Shield className="w-8 h-8 text-white" />
+        <div className="flex flex-col justify-center space-y-6 bg-muted/30 rounded-lg p-8 border border-border">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary rounded-lg">
+              <Shield className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-4xl font-bold tracking-tight">CrisisCommand</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">CrisisCommand</h1>
           </div>
 
-          <h2 className="text-5xl font-extrabold leading-tight tracking-tighter">
-            Secure Operations & <br />
-            <span className="text-blue-500">Incident Response</span>
+          <h2 className="text-3xl font-semibold leading-tight tracking-tight">
+            Secure Operations <br />
+            <span className="text-primary">Incident Response</span>
           </h2>
 
-          <p className="text-xl text-zinc-400 max-w-lg">
+          <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
             Authenticate securely to access the unified command dashboard. Monitor critical infrastructure and coordinate response teams.
           </p>
 
-          <div className="flex flex-wrap gap-4">
-            <Badge variant="secondary" className="bg-emerald-900/30 text-emerald-400 border-emerald-800/50 px-4 py-2">
-              <Globe className="w-4 h-4 mr-2" />
+          <div className="flex flex-wrap gap-3">
+            <Badge variant="secondary" className="gap-1.5">
+              <Globe className="w-3.5 h-3.5" />
               System Operational
             </Badge>
-            <Badge variant="secondary" className="bg-blue-900/30 text-blue-400 border-blue-800/50 px-4 py-2">
-              <Lock className="w-4 h-4 mr-2" />
+            <Badge variant="outline" className="gap-1.5">
+              <Lock className="w-3.5 h-3.5" />
               End-to-End Encrypted
             </Badge>
           </div>
@@ -104,21 +95,21 @@ export default function LoginPage() {
 
         {/* Right Side: Login Card */}
         <div className="flex items-center justify-center">
-          <Card className="w-full max-w-md bg-zinc-950/50 border-zinc-800 backdrop-blur-xl shadow-2xl">
+          <Card className="w-full max-w-md bg-card border-border shadow-sm">
             <CardHeader className="space-y-1 text-center">
-              <div className="flex justify-center mb-6 space-x-2">
-                <Button variant="outline" size="sm" className="text-xs border-zinc-700 bg-zinc-900/50 text-blue-400">
+              <div className="flex justify-center mb-6 gap-2">
+                <Button variant="default" size="sm" className="text-xs">
                   Incident Manager
                 </Button>
-                <Button variant="ghost" size="sm" className="text-xs text-zinc-500 hover:text-zinc-300">
+                <Button variant="ghost" size="sm" className="text-xs">
                   Reporter
                 </Button>
-                <Button variant="ghost" size="sm" className="text-xs text-zinc-500 hover:text-zinc-300">
+                <Button variant="ghost" size="sm" className="text-xs">
                   Executive
                 </Button>
               </div>
-              <CardTitle className="text-2xl font-bold">Commander Login</CardTitle>
-              <CardDescription className="text-zinc-500">
+              <CardTitle className="text-xl font-semibold">Commander Login</CardTitle>
+              <CardDescription>
                 Enter your secure credentials to proceed
               </CardDescription>
             </CardHeader>
@@ -128,14 +119,14 @@ export default function LoginPage() {
 
                 {/* Error Alert Box */}
                 {errorMessage && (
-                  <div className="flex items-center gap-3 p-3 text-sm border rounded-lg bg-red-950/20 border-red-900/50 text-red-400 animate-in fade-in zoom-in duration-200">
+                  <div className="flex items-center gap-3 p-3 text-sm border rounded-lg bg-destructive/10 border-destructive/20 text-destructive animate-in fade-in zoom-in duration-200">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <p>{errorMessage}</p>
                   </div>
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-zinc-400">Work Email</Label>
+                  <Label htmlFor="email">Work Email</Label>
                   <Input
                     id="email"
                     name="email"
@@ -143,14 +134,13 @@ export default function LoginPage() {
                     placeholder="commander@crisiscommand.com"
                     required
                     disabled={isLoading}
-                    className="bg-zinc-900/50 border-zinc-800 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="password" className="text-zinc-400">Master Password</Label>
-                    <button type="button" className="text-xs text-blue-500 hover:text-blue-400 hover:underline">
+                    <Label htmlFor="password">Master Password</Label>
+                    <button type="button" className="text-xs text-primary hover:underline">
                       Recovery Protocol?
                     </button>
                   </div>
@@ -160,14 +150,13 @@ export default function LoginPage() {
                     type="password"
                     required
                     disabled={isLoading}
-                    className="bg-zinc-900/50 border-zinc-800 focus:ring-blue-500 transition-all"
                   />
                 </div>
 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-6 transition-all"
+                  className="w-full"
                 >
                   {isLoading ? (
                     <>
@@ -179,20 +168,20 @@ export default function LoginPage() {
                   )}
                 </Button>
 
-                <div className="relative text-center text-[10px] text-zinc-600 my-4 uppercase tracking-widest">
-                  <span className="relative z-10 bg-zinc-950 px-3">Secure SSO Gateway</span>
-                  <div className="absolute inset-x-0 top-1/2 h-[1px] bg-zinc-800" />
+                <div className="relative text-center text-xs text-muted-foreground my-4">
+                  <span className="relative z-10 bg-card px-3">Secure SSO Gateway</span>
+                  <div className="absolute inset-x-0 top-1/2 h-[1px] bg-border" />
                 </div>
 
-                <Button variant="outline" type="button" className="w-full border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800 text-zinc-400">
+                <Button variant="outline" type="button" className="w-full">
                   Single Sign-On (Azure AD)
                 </Button>
               </CardContent>
             </form>
 
             <CardFooter className="pt-0">
-              <div className="w-full bg-red-950/30 border border-red-900/20 text-red-500/80 text-[10px] font-bold text-center py-2 rounded uppercase tracking-tighter">
-                ⚠️ Restricted Access: Unauthorized Entry Logged
+              <div className="w-full bg-muted border border-border text-muted-foreground text-xs text-center py-2 rounded">
+                Restricted Access: Unauthorized Entry Logged
               </div>
             </CardFooter>
           </Card>

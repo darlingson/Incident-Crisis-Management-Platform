@@ -27,24 +27,24 @@ export default async function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-[#09090b] border-r border-zinc-800 flex flex-col shrink-0">
+    <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0">
       {/* Brand Logo */}
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <ShieldCheck className="w-5 h-5 text-white" />
+      <div className="p-6 flex items-center gap-3 border-b border-border">
+        <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
+          <ShieldCheck className="w-4 h-4 text-primary-foreground" />
         </div>
-        <span className="font-bold text-lg tracking-tight text-zinc-100">CrisisCMD</span>
+        <span className="font-semibold text-lg tracking-tight">CrisisCMD</span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1">
+      <nav className="flex-1 px-4 py-4 space-y-1">
         {navItems.filter(i => i.show).map((item) => (
           <Link 
             key={item.name} 
             href={item.href} 
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 rounded-lg transition-all group"
+            className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors group"
           >
-            <item.icon className="w-4 h-4 group-hover:text-blue-500" />
+            <item.icon className="w-4 h-4 group-hover:text-primary" />
             {item.name}
           </Link>
         ))}
@@ -54,7 +54,7 @@ export default async function Sidebar() {
       <div className="px-4 space-y-1 mb-4">
         <Link 
           href="/dashboard/settings" 
-          className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 rounded-lg transition-all"
+          className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
         >
           <Settings className="w-4 h-4" />
           Settings
@@ -62,7 +62,7 @@ export default async function Sidebar() {
         <form action="/api/logout" method="POST">
           <button 
             type="submit"
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Log Out
@@ -71,19 +71,19 @@ export default async function Sidebar() {
       </div>
 
       {/* Profile Section */}
-      <div className="p-4 border-t border-zinc-800 bg-zinc-950/50">
+      <div className="p-4 border-t border-border bg-muted/30">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-zinc-700">
-            <AvatarImage src="" /> {/* Add dynamic image if available */}
-            <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xs">
+          <Avatar className="h-9 w-9 border border-border">
+            <AvatarImage src="" />
+            <AvatarFallback className="bg-muted text-muted-foreground text-xs">
               {userInfo.firstName[0]}{userInfo.lastName[0]}
             </AvatarFallback>
           </Avatar>
           <div className="overflow-hidden">
-            <p className="text-sm font-semibold text-zinc-200 truncate">
+            <p className="text-sm font-medium truncate">
               {userInfo.firstName} {userInfo.lastName}
             </p>
-            <p className="text-xs text-zinc-500 truncate capitalize">
+            <p className="text-xs text-muted-foreground truncate capitalize">
               {role?.replace(/([A-Z])/g, ' $1').trim() || "User"}
             </p>
           </div>
