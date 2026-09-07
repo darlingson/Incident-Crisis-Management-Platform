@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Save, X, Loader2, Edit3, User } from 'lucide-react';
+import { Save, X, Loader2, Edit3 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AssignableUser {
     id: string;
@@ -93,33 +99,33 @@ export default function EditReportPage() {
 
     return (
         <div className="bg-background min-h-screen p-6">
-            <div className="max-w-3xl mx-auto bg-card border border-border rounded-lg p-8 shadow-sm">
-                <div className="mb-8">
-                    <h1 className="text-xl font-semibold flex items-center gap-2">
+            <Card className="max-w-3xl mx-auto">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
                         <Edit3 className="w-5 h-5 text-primary" /> Edit incident #{id}
-                    </h1>
-                    <p className="text-muted-foreground text-sm mt-1">Update details and owner for this report.</p>
-                </div>
-
+                    </CardTitle>
+                    <CardDescription>Update details and owner for this report.</CardDescription>
+                </CardHeader>
+                <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Title */}
-                    <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-2">Title</label>
-                        <input 
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                            id="title"
                             required
-                            className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                             value={formData.title}
                             onChange={e => setFormData({...formData, title: e.target.value})}
                         />
                     </div>
 
                     {/* Narrative */}
-                    <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-2">Narrative / Description</label>
-                        <textarea 
+                    <div className="space-y-2">
+                        <Label htmlFor="narrative">Narrative / Description</Label>
+                        <Textarea
+                            id="narrative"
                             rows={4}
                             required
-                            className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                             value={formData.narrative}
                             onChange={e => setFormData({...formData, narrative: e.target.value, description: e.target.value})}
                         />
@@ -127,57 +133,54 @@ export default function EditReportPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Impact Select */}
-                        <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-2">Impact Level</label>
-                            <select 
-                                className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none"
-                                value={formData.impact}
-                                onChange={e => setFormData({...formData, impact: e.target.value})}
-                            >
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
-                                <option value="Critical">Critical</option>
-                            </select>
+                        <div className="space-y-2">
+                            <Label>Impact Level</Label>
+                            <Select value={formData.impact} onValueChange={(v: string) => setFormData({...formData, impact: v})}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Low">Low</SelectItem>
+                                    <SelectItem value="Medium">Medium</SelectItem>
+                                    <SelectItem value="High">High</SelectItem>
+                                    <SelectItem value="Critical">Critical</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Assigned To Dropdown */}
-                        <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-2">Assignee</label>
-                            <div className="relative">
-                                <select 
-                                    className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none appearance-none"
-                                    value={formData.assignedTo}
-                                    onChange={e => setFormData({...formData, assignedTo: e.target.value})}
-                                >
-                                    <option value="">Unassigned</option>
+                        <div className="space-y-2">
+                            <Label>Assignee</Label>
+                            <Select value={formData.assignedTo} onValueChange={(v: string) => setFormData({...formData, assignedTo: v})}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Unassigned" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="">Unassigned</SelectItem>
                                     {users.map(user => (
-                                        <option key={user.id} value={user.fullName}>
+                                        <SelectItem key={user.id} value={user.fullName}>
                                             {user.fullName} ({user.email})
-                                        </option>
+                                        </SelectItem>
                                     ))}
-                                </select>
-                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-muted-foreground">
-                                    <User className="w-4 h-4" />
-                                </div>
-                            </div>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
                     {/* Location & Type */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-2">Location</label>
-                            <input 
-                                className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none"
+                        <div className="space-y-2">
+                            <Label htmlFor="location">Location</Label>
+                            <Input
+                                id="location"
                                 value={formData.location}
                                 onChange={e => setFormData({...formData, location: e.target.value})}
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-medium text-muted-foreground mb-2">Incident Type</label>
-                            <input 
-                                className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none"
+                        <div className="space-y-2">
+                            <Label htmlFor="type">Incident Type</Label>
+                            <Input
+                                id="type"
                                 value={formData.type}
                                 onChange={e => setFormData({...formData, type: e.target.value})}
                             />
@@ -185,25 +188,26 @@ export default function EditReportPage() {
                     </div>
 
                     {/* Form Actions */}
-                    <div className="flex gap-4 pt-6 border-t border-border">
-                        <button 
-                            type="submit" 
+                    <div className="flex gap-4 pt-6">
+                        <Button
+                            type="submit"
                             disabled={saving}
-                            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+                            className="flex-1"
                         >
-                            {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />} 
+                            {saving ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                             {saving ? 'Saving...' : 'Update incident'}
-                        </button>
-                        <button 
+                        </Button>
+                        <Button
                             type="button"
+                            variant="outline"
                             onClick={() => router.back()}
-                            className="px-8 bg-background border border-border text-muted-foreground font-medium py-3 rounded-lg flex items-center gap-2 hover:bg-muted transition-colors"
                         >
-                            <X className="w-4 h-4" /> Cancel
-                        </button>
+                            <X className="w-4 h-4 mr-2" /> Cancel
+                        </Button>
                     </div>
                 </form>
-            </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }
