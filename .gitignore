@@ -1,0 +1,49 @@
+# Root orchestrator (Node workspaces) - keep lockfile committed
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Next.js (root + web)
+.next/
+out/
+build/
+dist/
+.next/
+coverage/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+.vs/
+.idea/
+*.binlog
+TestResults/
+
+# Env - use user-secrets for Api, .env.local for web
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Secrets / local config
+appsettings.Development.json
+secrets/
+
+# Opencode / skills (keep committed, but ignore cache)
+.opencode/cache/
+.claude/cache/
