@@ -37,6 +37,14 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Incident semantics */
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-critical-foreground: var(--severity-critical-foreground);
+  --color-severity-medium: var(--severity-medium);
+  --color-severity-low: var(--severity-low);
+  --color-status-reported: var(--status-reported);
+  --color-status-investigation: var(--status-investigation);
+  --color-status-resolved: var(--status-resolved);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -47,38 +55,48 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.028 261.692);
+  /* Corporate minimal light — single source, no hard-coded bg-[#...] */
+  --radius: 0.5rem; /* minimal, corporate */
+  --background: oklch(0.991 0 0); /* #f8fafc → white canvas */
+  --foreground: oklch(0.21 0.02 256); /* slate-900 */
+  --card: oklch(1 0 0); /* white */
+  --card-foreground: oklch(0.21 0.02 256);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.028 261.692);
-  --primary: oklch(0.21 0.034 264.665);
-  --primary-foreground: oklch(0.985 0.002 247.839);
-  --secondary: oklch(0.967 0.003 264.542);
-  --secondary-foreground: oklch(0.21 0.034 264.665);
-  --muted: oklch(0.967 0.003 264.542);
-  --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.967 0.003 264.542);
-  --accent-foreground: oklch(0.21 0.034 264.665);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.928 0.006 264.531);
-  --input: oklch(0.928 0.006 264.531);
-  --ring: oklch(0.707 0.022 261.325);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.002 247.839);
-  --sidebar-foreground: oklch(0.13 0.028 261.692);
-  --sidebar-primary: oklch(0.21 0.034 264.665);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.967 0.003 264.542);
-  --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
-  --sidebar-border: oklch(0.928 0.006 264.531);
-  --sidebar-ring: oklch(0.707 0.022 261.325);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.13 0.028 261.692);
+  --popover-foreground: oklch(0.21 0.02 256);
+  --primary: oklch(0.55 0.22 255); /* corporate blue #2563eb */
+  --primary-foreground: oklch(0.985 0 0); /* white */
+  --secondary: oklch(0.97 0.005 256); /* slate-100 */
+  --secondary-foreground: oklch(0.35 0.02 256); /* slate-700 */
+  --muted: oklch(0.97 0.005 256);
+  --muted-foreground: oklch(0.551 0.015 256); /* slate-500 */
+  --accent: oklch(0.97 0.005 256);
+  --accent-foreground: oklch(0.35 0.02 256);
+  --destructive: oklch(0.6 0.22 25); /* muted red #dc2626 */
+  --border: oklch(0.93 0.01 256); /* slate-200 #e2e8f0 */
+  --input: oklch(0.93 0.01 256);
+  --ring: oklch(0.55 0.22 255); /* primary */
+  /* Charts stay oklch but desaturated for corporate */
+  --chart-1: oklch(0.55 0.22 255);
+  --chart-2: oklch(0.6 0.12 180);
+  --chart-3: oklch(0.55 0.08 240);
+  --chart-4: oklch(0.7 0.15 70);
+  --chart-5: oklch(0.6 0.12 30);
+  --sidebar: oklch(0.985 0 0); /* white */
+  --sidebar-foreground: oklch(0.35 0.02 256);
+  --sidebar-primary: oklch(0.55 0.22 255);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0.005 256);
+  --sidebar-accent-foreground: oklch(0.35 0.02 256);
+  --sidebar-border: oklch(0.93 0.01 256);
+  --sidebar-ring: oklch(0.55 0.22 255);
+  /* Incident semantics — single mapping, not scattered bg-red-500/10 vs red-900/20 */
+  --severity-critical: var(--destructive);
+  --severity-critical-foreground: oklch(0.985 0 0);
+  --severity-medium: oklch(0.66 0.18 35); /* amber-600 */
+  --severity-low: oklch(0.55 0.015 256);
+  --status-reported: oklch(0.55 0.22 255);
+  --status-investigation: oklch(0.55 0.15 280); /* violet */
+  --status-resolved: oklch(0.6 0.15 150); /* emerald */
 }
 
 .dark {
