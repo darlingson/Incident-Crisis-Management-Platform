@@ -1,5 +1,5 @@
 /**
- * CrisisCommand — Minimal Corporate Tokens
+ * IncidentDesk — Minimal Corporate Tokens
  * Single source: globals.css :root vars → Tailwind via @theme inline
  * Framework: Tailwind 4 + shadcn/ui (Radix) — use these, no bg-[#...] hardcodes
  * Feel: light, minimal, corporate (white canvas, slate neutrals, one blue)

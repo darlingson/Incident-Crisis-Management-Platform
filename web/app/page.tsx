@@ -6,15 +6,13 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Shield, Globe, Lock, AlertCircle, Loader2 } from "lucide-react";
+import { Shield, AlertCircle, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -69,28 +67,17 @@ export default function LoginPage() {
             <div className="p-2.5 bg-primary rounded-lg">
               <Shield className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight">CrisisCommand</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">IncidentDesk</h1>
           </div>
 
           <h2 className="text-3xl font-semibold leading-tight tracking-tight">
-            Secure Operations <br />
-            <span className="text-primary">Incident Response</span>
+            Incident Management <br />
+            <span className="text-primary">Workspace</span>
           </h2>
 
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-            Authenticate securely to access the unified command dashboard. Monitor critical infrastructure and coordinate response teams.
+            Sign in to manage incidents, track response, and keep teams aligned.
           </p>
-
-          <div className="flex flex-wrap gap-3">
-            <Badge variant="secondary" className="gap-1.5">
-              <Globe className="w-3.5 h-3.5" />
-              System Operational
-            </Badge>
-            <Badge variant="outline" className="gap-1.5">
-              <Lock className="w-3.5 h-3.5" />
-              End-to-End Encrypted
-            </Badge>
-          </div>
         </div>
 
         {/* Right Side: Login Card */}
@@ -108,9 +95,9 @@ export default function LoginPage() {
                   Executive
                 </Button>
               </div>
-              <CardTitle className="text-xl font-semibold">Commander Login</CardTitle>
+              <CardTitle className="text-xl font-semibold">Sign in</CardTitle>
               <CardDescription>
-                Enter your secure credentials to proceed
+                Enter your credentials to continue
               </CardDescription>
             </CardHeader>
 
@@ -131,7 +118,7 @@ export default function LoginPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="commander@crisiscommand.com"
+                    placeholder="you@company.com"
                     required
                     disabled={isLoading}
                   />
@@ -139,9 +126,9 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="password">Master Password</Label>
+                    <Label htmlFor="password">Password</Label>
                     <button type="button" className="text-xs text-primary hover:underline">
-                      Recovery Protocol?
+                      Forgot password?
                     </button>
                   </div>
                   <Input
@@ -161,15 +148,15 @@ export default function LoginPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Authenticating...
+                      Signing in...
                     </>
                   ) : (
-                    "Authorize Dashboard Access →"
+                    "Sign in"
                   )}
                 </Button>
 
                 <div className="relative text-center text-xs text-muted-foreground my-4">
-                  <span className="relative z-10 bg-card px-3">Secure SSO Gateway</span>
+                  <span className="relative z-10 bg-card px-3">Or continue with</span>
                   <div className="absolute inset-x-0 top-1/2 h-[1px] bg-border" />
                 </div>
 
@@ -179,11 +166,7 @@ export default function LoginPage() {
               </CardContent>
             </form>
 
-            <CardFooter className="pt-0">
-              <div className="w-full bg-muted border border-border text-muted-foreground text-xs text-center py-2 rounded">
-                Restricted Access: Unauthorized Entry Logged
-              </div>
-            </CardFooter>
+
           </Card>
         </div>
       </div>

@@ -33,7 +33,7 @@ export default async function Sidebar() {
         <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
           <ShieldCheck className="w-4 h-4 text-primary-foreground" />
         </div>
-        <span className="font-semibold text-lg tracking-tight">CrisisCMD</span>
+        <span className="font-semibold text-lg tracking-tight">IncidentDesk</span>
       </div>
 
       {/* Navigation */}

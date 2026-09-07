@@ -85,29 +85,29 @@ export default function EditReportPage() {
 
     if (loading) {
         return (
-            <div className="bg-[#0b0e14] min-h-screen flex items-center justify-center text-white">
-                <Loader2 className="animate-spin mr-2" /> Loading Incident Details...
+            <div className="bg-background min-h-screen flex items-center justify-center">
+                <Loader2 className="animate-spin mr-2" /> Loading...
             </div>
         );
     }
 
     return (
-        <div className="bg-[#0b0e14] min-h-screen text-slate-300 p-8">
-            <div className="max-w-3xl mx-auto bg-[#11151c] border border-slate-800 rounded-xl p-8 shadow-2xl">
+        <div className="bg-background min-h-screen p-6">
+            <div className="max-w-3xl mx-auto bg-card border border-border rounded-lg p-8 shadow-sm">
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                        <Edit3 size={24} className="text-blue-500" /> Edit Incident INC-{id}
+                    <h1 className="text-xl font-semibold flex items-center gap-2">
+                        <Edit3 className="w-5 h-5 text-primary" /> Edit incident #{id}
                     </h1>
-                    <p className="text-slate-500 text-sm mt-1">Modify the core details and ownership of this report.</p>
+                    <p className="text-muted-foreground text-sm mt-1">Update details and owner for this report.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Title */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Title</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-2">Title</label>
                         <input 
                             required
-                            className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-all"
+                            className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                             value={formData.title}
                             onChange={e => setFormData({...formData, title: e.target.value})}
                         />
@@ -115,11 +115,11 @@ export default function EditReportPage() {
 
                     {/* Narrative */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Narrative / Description</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-2">Narrative / Description</label>
                         <textarea 
                             rows={4}
                             required
-                            className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-all"
+                            className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                             value={formData.narrative}
                             onChange={e => setFormData({...formData, narrative: e.target.value, description: e.target.value})}
                         />
@@ -128,9 +128,9 @@ export default function EditReportPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Impact Select */}
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Impact Level</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">Impact Level</label>
                             <select 
-                                className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none appearance-none cursor-pointer"
+                                className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none"
                                 value={formData.impact}
                                 onChange={e => setFormData({...formData, impact: e.target.value})}
                             >
@@ -143,10 +143,10 @@ export default function EditReportPage() {
 
                         {/* Assigned To Dropdown */}
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Assigned Commander</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">Assignee</label>
                             <div className="relative">
                                 <select 
-                                    className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none appearance-none cursor-pointer"
+                                    className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none appearance-none"
                                     value={formData.assignedTo}
                                     onChange={e => setFormData({...formData, assignedTo: e.target.value})}
                                 >
@@ -157,8 +157,8 @@ export default function EditReportPage() {
                                         </option>
                                     ))}
                                 </select>
-                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-500">
-                                    <User size={16} />
+                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-muted-foreground">
+                                    <User className="w-4 h-4" />
                                 </div>
                             </div>
                         </div>
@@ -167,17 +167,17 @@ export default function EditReportPage() {
                     {/* Location & Type */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Location</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">Location</label>
                             <input 
-                                className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
+                                className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none"
                                 value={formData.location}
                                 onChange={e => setFormData({...formData, location: e.target.value})}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Incident Type</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">Incident Type</label>
                             <input 
-                                className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
+                                className="w-full bg-background border border-border rounded-lg p-3 focus:border-primary outline-none"
                                 value={formData.type}
                                 onChange={e => setFormData({...formData, type: e.target.value})}
                             />
@@ -185,21 +185,21 @@ export default function EditReportPage() {
                     </div>
 
                     {/* Form Actions */}
-                    <div className="flex gap-4 pt-6 border-t border-slate-800">
+                    <div className="flex gap-4 pt-6 border-t border-border">
                         <button 
                             type="submit" 
                             disabled={saving}
-                            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 disabled:bg-slate-700 transition-all shadow-lg shadow-blue-900/20"
+                            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
                         >
-                            {saving ? <Loader2 className="animate-spin" /> : <Save size={18} />} 
-                            {saving ? 'Saving Changes...' : 'Update Incident'}
+                            {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />} 
+                            {saving ? 'Saving...' : 'Update incident'}
                         </button>
                         <button 
                             type="button"
                             onClick={() => router.back()}
-                            className="px-8 bg-transparent border border-slate-700 text-slate-400 font-bold py-3 rounded-lg flex items-center gap-2 hover:bg-slate-800 hover:text-white transition-all"
+                            className="px-8 bg-background border border-border text-muted-foreground font-medium py-3 rounded-lg flex items-center gap-2 hover:bg-muted transition-colors"
                         >
-                            <X size={18} /> Cancel
+                            <X className="w-4 h-4" /> Cancel
                         </button>
                     </div>
                 </form>

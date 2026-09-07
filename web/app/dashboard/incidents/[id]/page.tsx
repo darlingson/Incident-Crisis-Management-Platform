@@ -97,7 +97,7 @@ export default function IncidentDetailsPage() {
           <div className="bg-card border border-border rounded-lg p-5 shadow-sm">
             <h3 className="text-xs font-medium text-muted-foreground mb-6">Incident Details</h3>
             <div className="space-y-6">
-                <DetailRow icon={<User className="w-4 h-4"/>} label="Commander" value={data.assignedTo || "Unassigned"} />
+                <DetailRow icon={<User className="w-4 h-4"/>} label="Owner" value={data.assignedTo || "Unassigned"} />
                 <DetailRow icon={<MapPin className="w-4 h-4"/>} label="Location" value={data.location} />
                 <DetailRow icon={<Clock className="w-4 h-4"/>} label="Started" value={new Date(data.createdAt).toLocaleString()} />
                 <DetailRow icon={<Shield className="w-4 h-4"/>} label="Type" value={data.type} />

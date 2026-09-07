@@ -33,7 +33,7 @@ export default function EmployeePortal() {
             Good afternoon, <span className="text-primary">Alex</span>
           </h1>
           <p className="text-muted-foreground">
-            CrisisCMD Employee Portal • Secure Incident Management
+            Employee Portal • Incident Management
           </p>
         </div>
         <Card className="relative overflow-hidden bg-card border-border shadow-sm">
@@ -45,17 +45,10 @@ export default function EmployeePortal() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
               <div className="space-y-4">
-                <Badge variant="outline" className="gap-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  System Operational
-                </Badge>
                 <div>
                   <h2 className="text-2xl font-semibold tracking-tight mb-2">Report an Incident</h2>
                   <p className="text-muted-foreground text-sm max-w-md">
-                    Spot a safety hazard or security breach? Notify the command center immediately to ensure site-wide safety.
+                    Spot a safety hazard or security breach? Notify the response team to help keep the workplace safe.
                   </p>
                 </div>
               </div>
