@@ -1,0 +1,24 @@
+type Level = "debug" | "info" | "warn" | "error";
+
+const isDev = process.env.NODE_ENV !== "production";
+
+function log(level: Level, message: string, meta?: Record<string, unknown>) {
+  const entry = {
+    level,
+    message,
+    ...meta,
+    timestamp: new Date().toISOString(),
+  };
+  // Structured JSON in prod, pretty in dev
+  if (level === "error") console.error(JSON.stringify(entry));
+  else if (level === "warn") console.warn(JSON.stringify(entry));
+  else if (isDev) console.log(JSON.stringify(entry));
+  else console.log(JSON.stringify(entry));
+}
+
+export const logger = {
+  debug: (msg: string, meta?: Record<string, unknown>) => log("debug", msg, meta),
+  info: (msg: string, meta?: Record<string, unknown>) => log("info", msg, meta),
+  warn: (msg: string, meta?: Record<string, unknown>) => log("warn", msg, meta),
+  error: (msg: string, meta?: Record<string, unknown>) => log("error", msg, meta),
+};

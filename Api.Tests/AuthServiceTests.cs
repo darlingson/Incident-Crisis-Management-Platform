@@ -9,6 +9,7 @@ using Api.Services;
 using Api.DTOs;
 using Moq;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 
 public class AuthServiceTests
 {
@@ -45,8 +46,9 @@ public class AuthServiceTests
         jwtMock.Setup(j => j.GetPrincipalFromExpiredToken(It.IsAny<string>())).Returns(new System.Security.Claims.ClaimsPrincipal(
             new System.Security.Claims.ClaimsIdentity(new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, "test-id") })
         ));
+        var logger = new Mock<ILogger<AuthService>>();
 
-        var service = new AuthService(userManager, roleMgr, jwtMock.Object, TimeProvider.System);
+        var service = new AuthService(userManager, roleMgr, jwtMock.Object, TimeProvider.System, logger.Object);
         return (service, context, jwtMock);
     }
 
