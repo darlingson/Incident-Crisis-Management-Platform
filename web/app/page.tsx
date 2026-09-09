@@ -39,7 +39,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row font-sans text-foreground bg-white">
+    <div className="min-h-screen w-full flex flex-col md:flex-row font-sans text-foreground bg-background">
       {/* Left — Hero */}
       <div className="relative flex-1 bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50/30 p-8 lg:p-12 flex flex-col justify-between overflow-hidden min-h-[500px] md:min-h-screen">
         <div className="max-w-md z-10 mt-6 md:mt-12 md:ml-8">
@@ -89,7 +89,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right — Form */}
-      <div className="w-full md:w-[480px] lg:w-[540px] bg-white p-8 sm:p-12 lg:p-16 flex flex-col justify-between items-center">
+      <div className="w-full md:w-[480px] lg:w-[540px] bg-card p-8 sm:p-12 lg:p-16 flex flex-col justify-between items-center border-l border-border">
         <div className="w-full flex justify-end mb-12">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
@@ -176,7 +176,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-muted-foreground">Or continue with</span>
+              <span className="bg-card px-3 text-muted-foreground">Or continue with</span>
             </div>
           </div>
 
@@ -186,10 +186,6 @@ export default function LoginPage() {
           >
             Single Sign-On (Azure AD)
           </button>
-
-          <div className="mt-6 text-center text-xs text-muted-foreground">
-            Protected system — contact admin for access.
-          </div>
         </div>
 
         <div className="h-6" />

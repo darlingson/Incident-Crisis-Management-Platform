@@ -1,14 +1,14 @@
 # Incident & Crisis Management Platform
 
-A full-stack application for managing incidents and crises, featuring a .NET 8 Web API backend and a Next.js 16 frontend.
+A full-stack application for managing incidents and crises, featuring a .NET 10 Web API backend and a Next.js 16.3.4 frontend (Turbopack).
 
 ## Prerequisites
 
 Ensure you have the following installed on your machine:
 
 - **Docker Desktop** (for the database)
-- **.NET 8.0 SDK** ([Download](https://dotnet.microsoft.com/download/dotnet/8.0))
-- **Node.js** (v20 or later recommended) & **npm** ([Download](https://nodejs.org/))
+- **.NET 10.0 SDK** ([Download](https://dotnet.microsoft.com/download/dotnet/10.0))
+- **Node.js** (v20.9+ recommended, 20.9 is minimum for Next 16) & **npm 10+** ([Download](https://nodejs.org/))
 
 ## Getting Started
 
@@ -20,10 +20,13 @@ Start the PostgreSQL database using Docker Compose.
 docker-compose up -d
 ```
 
-This will spin up a Postgres instance on port **5433** with the following credentials:
-- **Database:** `incident-crisis-db`
+This will spin up a Postgres instance on port **5432** with the following credentials (via `docker-compose.yml:1` + user-secrets):
+- **Database:** `reconciliation`
 - **User:** `postgres`
-- **Password:** `darlingson`
+- **Password:** `masterpassword`
+- **Host:** `localhost:5432`
+
+> For local dev the Api uses **user-secrets** `ConnectionStrings:DefaultConnection=Host=localhost;Port=5432;Database=reconciliation;Username=postgres;Password=masterpassword` (`Api/Api.csproj:7` `UserSecretsId`), not `appsettings.json` `5433/darlingson`.
 
 ### 2. Backend Setup (API)
 
@@ -77,6 +80,12 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
+**Or one-command (Api + web, DB via docker):**
+```bash
+npm install # at repo root installs concurrently + web deps
+npm run dev # Api (.NET) + web (Next Turbopack) together
+```
+
 ## Project Structure
 
 - **Api/**: ASP.NET Core Web API (Backend)
@@ -90,9 +99,10 @@ Configuration is located in `Api/appsettings.json`. The default connection strin
 
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Host=localhost;Port=5433;Database=incident-crisis-db;Username=postgres;Password=darlingson"
+  "DefaultConnection": "Host=localhost;Port=5432;Database=reconciliation;Username=postgres;Password=masterpassword"
 }
 ```
+Use user-secrets for local: `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=reconciliation;Username=postgres;Password=masterpassword" --project Api`
 
 ### Frontend
 Frontend configuration can be managed via environment variables (e.g., `.env.local`).

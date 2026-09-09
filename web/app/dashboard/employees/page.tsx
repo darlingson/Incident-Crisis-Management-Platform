@@ -85,12 +85,12 @@ export default function EmployeePortal() {
                   <Card className="bg-card border-border hover:border-primary/20 transition-colors cursor-pointer group">
                     <CardContent className="p-5 flex items-center gap-5">
                       <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center group-hover:bg-muted/80 transition-colors">
-                        <Wifi className="w-5 h-5 text-severity-medium" />
+                        <Wifi className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex justify-between">
                           <p className="font-medium">Wi-Fi Connectivity Issues on 3rd Floor</p>
-                          <Badge variant="outline" className="bg-severity-medium/10 text-severity-medium border-severity-medium/20">Under Review</Badge>
+                          <Badge variant="outline">Under Review</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground font-mono">#INC-599 · Submitted today, 16:30</p>
                       </div>

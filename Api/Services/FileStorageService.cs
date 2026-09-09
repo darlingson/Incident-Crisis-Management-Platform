@@ -14,7 +14,7 @@ namespace Api.Services
                 throw new ArgumentException($"File exceeds max size of {maxSize} bytes.", nameof(file));
 
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".pdf", ".docx", ".txt" };
+            var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".svg", ".png", ".jpg", ".jpeg", ".pdf" };
             if (string.IsNullOrEmpty(extension) || !allowed.Contains(extension))
                 throw new ArgumentException($"File extension '{extension}' is not allowed.", nameof(file));
 

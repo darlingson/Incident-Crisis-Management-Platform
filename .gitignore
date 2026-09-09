@@ -1,4 +1,5 @@
-# Root orchestrator (Node workspaces) - keep lockfile committed
+# Root orchestrator (Node workspaces) - keep web lockfile, ignore root bloat
+/package-lock.json
 node_modules/
 npm-debug.log*
 yarn-debug.log*
