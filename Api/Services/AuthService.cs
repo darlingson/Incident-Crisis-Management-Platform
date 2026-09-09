@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Api.Models;
 using Api.DTOs;
 using Api.Services.Interfaces;
@@ -11,17 +12,20 @@ namespace Api.Services
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly IJwtService _jwtService;
         private readonly TimeProvider _timeProvider;
+        private readonly ILogger<AuthService> _logger;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             RoleManager<ApplicationRole> roleManager,
             IJwtService jwtService,
-            TimeProvider timeProvider)
+            TimeProvider timeProvider,
+            ILogger<AuthService> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtService = jwtService;
             _timeProvider = timeProvider;
+            _logger = logger;
         }
 
         private static AuthUserDto ToDto(ApplicationUser user, IEnumerable<string> roles) => new()
@@ -38,6 +42,7 @@ namespace Api.Services
 
         public async Task<AuthResult> SignUpAsync(SignUpDto dto)
         {
+            _logger.LogInformation("SignUp attempt for {Email}", dto.Email);
             var user = new ApplicationUser
             {
                 UserName = dto.Email,
@@ -50,12 +55,15 @@ namespace Api.Services
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
             {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                _logger.LogWarning("SignUp failed for {Email}: {Errors}", dto.Email, errors);
                 return new AuthResult(false, Errors: result.Errors.Select(e => e.Description));
             }
 
             await _userManager.AddToRoleAsync(user, "User");
             var roles = await _userManager.GetRolesAsync(user);
             var token = _jwtService.GenerateToken(user, roles);
+            _logger.LogInformation("SignUp succeeded for {Email} with roles {Roles}", dto.Email, string.Join(",", roles));
 
             return new AuthResult(
                 true,
@@ -102,19 +110,23 @@ namespace Api.Services
 
         public async Task<AuthResult> SignInAsync(SignInDto dto)
         {
+            _logger.LogInformation("SignIn attempt for {Email}", dto.Email);
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             {
+                _logger.LogWarning("SignIn failed: invalid credentials for {Email}", dto.Email);
                 return new AuthResult(false, Message: "Invalid email or password");
             }
 
             if (!user.IsActive)
             {
+                _logger.LogWarning("SignIn failed: deactivated account {Email}", dto.Email);
                 return new AuthResult(false, Message: "Account is deactivated");
             }
 
             if (!user.EmailConfirmed && !dto.AllowUnconfirmedEmail)
             {
+                _logger.LogWarning("SignIn failed: email not confirmed {Email}", dto.Email);
                 return new AuthResult(false, Message: "Email not confirmed. Please check your email.");
             }
 
@@ -125,6 +137,7 @@ namespace Api.Services
             await _userManager.UpdateAsync(user);
 
             var token = _jwtService.GenerateToken(user, roles);
+            _logger.LogInformation("SignIn succeeded for {Email} roles {Roles}", dto.Email, string.Join(",", roles));
 
             return new AuthResult(
                 true,

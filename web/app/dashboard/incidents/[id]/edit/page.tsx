@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Save, X, Loader2, Edit3, User } from 'lucide-react';
+import { Save, X, Loader2, Edit3 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AssignableUser {
     id: string;
@@ -85,41 +91,41 @@ export default function EditReportPage() {
 
     if (loading) {
         return (
-            <div className="bg-[#0b0e14] min-h-screen flex items-center justify-center text-white">
-                <Loader2 className="animate-spin mr-2" /> Loading Incident Details...
+            <div className="bg-background min-h-screen flex items-center justify-center">
+                <Loader2 className="animate-spin mr-2" /> Loading...
             </div>
         );
     }
 
     return (
-        <div className="bg-[#0b0e14] min-h-screen text-slate-300 p-8">
-            <div className="max-w-3xl mx-auto bg-[#11151c] border border-slate-800 rounded-xl p-8 shadow-2xl">
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                        <Edit3 size={24} className="text-blue-500" /> Edit Incident INC-{id}
-                    </h1>
-                    <p className="text-slate-500 text-sm mt-1">Modify the core details and ownership of this report.</p>
-                </div>
-
+        <div className="bg-background min-h-screen p-6">
+            <Card className="max-w-3xl mx-auto">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Edit3 className="w-5 h-5 text-primary" /> Edit incident #{id}
+                    </CardTitle>
+                    <CardDescription>Update details and owner for this report.</CardDescription>
+                </CardHeader>
+                <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Title */}
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Title</label>
-                        <input 
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                            id="title"
                             required
-                            className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-all"
                             value={formData.title}
                             onChange={e => setFormData({...formData, title: e.target.value})}
                         />
                     </div>
 
                     {/* Narrative */}
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Narrative / Description</label>
-                        <textarea 
+                    <div className="space-y-2">
+                        <Label htmlFor="narrative">Narrative / Description</Label>
+                        <Textarea
+                            id="narrative"
                             rows={4}
                             required
-                            className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-all"
                             value={formData.narrative}
                             onChange={e => setFormData({...formData, narrative: e.target.value, description: e.target.value})}
                         />
@@ -127,57 +133,54 @@ export default function EditReportPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Impact Select */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Impact Level</label>
-                            <select 
-                                className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none appearance-none cursor-pointer"
-                                value={formData.impact}
-                                onChange={e => setFormData({...formData, impact: e.target.value})}
-                            >
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
-                                <option value="Critical">Critical</option>
-                            </select>
+                        <div className="space-y-2">
+                            <Label>Impact Level</Label>
+                            <Select value={formData.impact} onValueChange={(v: string) => setFormData({...formData, impact: v})}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Low">Low</SelectItem>
+                                    <SelectItem value="Medium">Medium</SelectItem>
+                                    <SelectItem value="High">High</SelectItem>
+                                    <SelectItem value="Critical">Critical</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Assigned To Dropdown */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Assigned Commander</label>
-                            <div className="relative">
-                                <select 
-                                    className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none appearance-none cursor-pointer"
-                                    value={formData.assignedTo}
-                                    onChange={e => setFormData({...formData, assignedTo: e.target.value})}
-                                >
-                                    <option value="">Unassigned</option>
+                        <div className="space-y-2">
+                            <Label>Assignee</Label>
+                            <Select value={formData.assignedTo} onValueChange={(v: string) => setFormData({...formData, assignedTo: v})}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Unassigned" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="">Unassigned</SelectItem>
                                     {users.map(user => (
-                                        <option key={user.id} value={user.fullName}>
+                                        <SelectItem key={user.id} value={user.fullName}>
                                             {user.fullName} ({user.email})
-                                        </option>
+                                        </SelectItem>
                                     ))}
-                                </select>
-                                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-500">
-                                    <User size={16} />
-                                </div>
-                            </div>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
                     {/* Location & Type */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Location</label>
-                            <input 
-                                className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
+                        <div className="space-y-2">
+                            <Label htmlFor="location">Location</Label>
+                            <Input
+                                id="location"
                                 value={formData.location}
                                 onChange={e => setFormData({...formData, location: e.target.value})}
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Incident Type</label>
-                            <input 
-                                className="w-full bg-[#0b0e14] border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
+                        <div className="space-y-2">
+                            <Label htmlFor="type">Incident Type</Label>
+                            <Input
+                                id="type"
                                 value={formData.type}
                                 onChange={e => setFormData({...formData, type: e.target.value})}
                             />
@@ -185,25 +188,26 @@ export default function EditReportPage() {
                     </div>
 
                     {/* Form Actions */}
-                    <div className="flex gap-4 pt-6 border-t border-slate-800">
-                        <button 
-                            type="submit" 
+                    <div className="flex gap-4 pt-6">
+                        <Button
+                            type="submit"
                             disabled={saving}
-                            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 disabled:bg-slate-700 transition-all shadow-lg shadow-blue-900/20"
+                            className="flex-1"
                         >
-                            {saving ? <Loader2 className="animate-spin" /> : <Save size={18} />} 
-                            {saving ? 'Saving Changes...' : 'Update Incident'}
-                        </button>
-                        <button 
+                            {saving ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            {saving ? 'Saving...' : 'Update incident'}
+                        </Button>
+                        <Button
                             type="button"
+                            variant="outline"
                             onClick={() => router.back()}
-                            className="px-8 bg-transparent border border-slate-700 text-slate-400 font-bold py-3 rounded-lg flex items-center gap-2 hover:bg-slate-800 hover:text-white transition-all"
                         >
-                            <X size={18} /> Cancel
-                        </button>
+                            <X className="w-4 h-4 mr-2" /> Cancel
+                        </Button>
                     </div>
                 </form>
-            </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

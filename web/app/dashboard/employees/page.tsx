@@ -29,33 +29,19 @@ export default function EmployeePortal() {
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
         <div className="flex flex-col space-y-1">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-            Good afternoon, <span className="text-blue-500">Alex</span>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Good afternoon, Alex
           </h1>
-          <p className="text-muted-foreground text-lg">
-            CrisisCMD Employee Portal • Secure Incident Management
-          </p>
         </div>
-        <Card className="relative overflow-hidden border-zinc-800 bg-zinc-950/50 backdrop-blur-sm shadow-2xl">
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 p-6 opacity-5 pointer-events-none">
-            <Shield className="w-64 h-64" />
-          </div>
-
-          <CardContent className="p-8 relative z-10">
+        <Card className="bg-card border-border shadow-sm">
+          <CardContent className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
               <div className="space-y-4">
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-3 py-1">
-                  <span className="relative flex h-2 w-2 mr-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  System Operational
-                </Badge>
                 <div>
-                  <h2 className="text-3xl font-bold tracking-tight mb-2">Report an Incident</h2>
-                  <p className="text-zinc-400 text-base max-w-md">
-                    Spot a safety hazard or security breach? Notify the command center immediately to ensure site-wide safety.
+                  <h2 className="text-2xl font-semibold tracking-tight mb-2">Report an Incident</h2>
+                  <p className="text-muted-foreground text-sm max-w-md">
+                    Spot a safety hazard or security breach? Notify the response team to help keep the workplace safe.
                   </p>
                 </div>
               </div>
@@ -64,9 +50,9 @@ export default function EmployeePortal() {
                 <Link href="/dashboard/incidents/report">
                   <Button
                     size="lg"
-                    className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-12 h-16 text-lg font-bold shadow-lg shadow-blue-500/20 group transition-all"
+                    className="px-8 h-12 group"
                   >
-                    <PlusCircle className="w-6 h-6 mr-3 group-hover:rotate-90 transition-transform duration-300" />
+                    <PlusCircle className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                     Initiate Report
                   </Button>
                 </Link>
@@ -83,45 +69,45 @@ export default function EmployeePortal() {
             <div className="space-y-4">
               <div className="flex justify-between items-end px-1">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-blue-500" />
+                  <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
                     Activity Log
                   </h3>
                   <p className="text-sm text-muted-foreground">Recent filings and status updates</p>
                 </div>
-                <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10">
+                <Button variant="ghost" size="sm" className="text-primary">
                   View full history <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </div>
 
               <ScrollArea className="h-[320px] rounded-md">
                 <div className="space-y-3 pr-4">
-                  <Card className="bg-zinc-900/40 border-zinc-800/50 hover:border-blue-500/50 transition-all duration-300 cursor-pointer group">
+                  <Card className="bg-card border-border hover:border-primary/20 transition-colors cursor-pointer group">
                     <CardContent className="p-5 flex items-center gap-5">
-                      <div className="h-14 w-14 rounded-2xl bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
-                        <Wifi className="w-7 h-7 text-orange-400" />
+                      <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center group-hover:bg-muted/80 transition-colors">
+                        <Wifi className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex justify-between">
-                          <p className="font-bold text-zinc-100">Wi-Fi Connectivity Issues on 3rd Floor</p>
-                          <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20 font-medium">Under Review</Badge>
+                          <p className="font-medium">Wi-Fi Connectivity Issues on 3rd Floor</p>
+                          <Badge variant="outline">Under Review</Badge>
                         </div>
-                        <p className="text-xs text-zinc-500 font-mono tracking-tighter">REF: #INC-599 • SUBMITTED: TODAY 16:30</p>
+                        <p className="text-xs text-muted-foreground font-mono">#INC-599 · Submitted today, 16:30</p>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-zinc-900/40 border-zinc-800/50 opacity-70 grayscale-[0.5] hover:grayscale-0 transition-all">
+                  <Card className="bg-card border-border opacity-80 hover:opacity-100 transition-opacity">
                     <CardContent className="p-5 flex items-center gap-5">
-                      <div className="h-14 w-14 rounded-2xl bg-zinc-800 flex items-center justify-center">
-                        <Package className="w-7 h-7 text-zinc-400" />
+                      <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+                        <Package className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1 space-y-1">
                         <div className="flex justify-between">
-                          <p className="font-bold text-zinc-100">Access Credentials Lost</p>
-                          <Badge variant="secondary" className="bg-zinc-800 text-zinc-500 border-zinc-700">Closed</Badge>
+                          <p className="font-medium">Access Credentials Lost</p>
+                          <Badge variant="secondary">Closed</Badge>
                         </div>
-                        <p className="text-xs text-zinc-500 font-mono tracking-tighter">REF: #INC-380 • SUBMITTED: 24H AGO</p>
+                        <p className="text-xs text-muted-foreground font-mono">#INC-380 · Submitted 24h ago</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -132,41 +118,41 @@ export default function EmployeePortal() {
 
           <div className="space-y-8">
 
-            <Card className="border-zinc-800 bg-zinc-900/20">
+            <Card className="bg-card border-border">
               <CardHeader className="pb-4">
-                <CardTitle className="text-blue-500 flex items-center gap-2 text-lg">
-                  <HelpCircle className="w-5 h-5" /> Help & Support
+                <CardTitle className="text-primary flex items-center gap-2 text-lg">
+                  <HelpCircle className="w-4 h-4" /> Help & Support
                 </CardTitle>
-                <CardDescription className="text-zinc-500">
+                <CardDescription>
                   Global response team available 24/7.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center p-4 bg-zinc-950 rounded-xl border border-zinc-800/50 hover:border-zinc-700 transition-colors cursor-help">
-                      <Phone className="w-5 h-5 mr-4 text-blue-500" />
+                    <div className="flex items-center p-4 bg-card rounded-lg border border-border hover:border-primary/20 transition-colors cursor-help">
+                      <Phone className="w-4 h-4 mr-4 text-primary" />
                       <div>
-                        <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest leading-none mb-1">Emergency Line</p>
-                        <p className="text-zinc-200 font-bold">EXT. 9110</p>
+                        <p className="text-xs text-muted-foreground leading-none mb-1">Emergency line</p>
+                        <p className="font-medium">EXT. 9110</p>
                       </div>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="left">Internal Priority Line</TooltipContent>
                 </Tooltip>
 
-                <div className="flex items-center p-4 bg-zinc-950 rounded-xl border border-zinc-800/50">
-                  <Mail className="w-5 h-5 mr-4 text-zinc-500" />
+                <div className="flex items-center p-4 bg-card rounded-lg border border-border">
+                  <Mail className="w-4 h-4 mr-4 text-muted-foreground" />
                   <div>
-                    <p className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest leading-none mb-1">Global Helpdesk</p>
-                    <p className="text-zinc-200 font-bold text-sm">support@crisiscmd.com</p>
+                    <p className="text-xs text-muted-foreground leading-none mb-1">Global helpdesk</p>
+                    <p className="font-medium text-sm">support@crisiscmd.com</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <div className="space-y-4 px-1">
-              <h3 className="text-xs font-black text-zinc-600 uppercase tracking-[0.2em]">Compliance Resources</h3>
+              <h3 className="text-sm font-medium">Compliance resources</h3>
               <div className="grid gap-2">
                 {[
                   { name: "Global Incident Policy", icon: FileText },
@@ -176,24 +162,16 @@ export default function EmployeePortal() {
                   <Button
                     key={link.name}
                     variant="ghost"
-                    className="w-full justify-start text-zinc-400 hover:text-white hover:bg-zinc-800/50 h-11 px-3 group"
+                    className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted h-10 px-3 group"
                   >
-                    <link.icon className="w-4 h-4 mr-3 text-zinc-700 group-hover:text-blue-500 transition-colors" />
+                    <link.icon className="w-4 h-4 mr-3 text-muted-foreground group-hover:text-primary transition-colors" />
                     {link.name}
                   </Button>
                 ))}
               </div>
             </div>
 
-            <Separator className="bg-zinc-800" />
-
-            <Card className="bg-blue-600/5 border-blue-500/10">
-              <CardContent className="p-4">
-                <p className="text-xs text-blue-400/80 leading-relaxed italic">
-                  "Ensuring a safe workplace is a collective responsibility. All reports remain confidential under the Global Safety Act."
-                </p>
-              </CardContent>
-            </Card>
+            <Separator />
           </div>
         </div>
       </div>

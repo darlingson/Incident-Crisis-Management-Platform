@@ -1,5 +1,6 @@
-import Sidebar from "@/components/Sidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import AppSidebar from "@/components/Sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardLayout({
   children,
@@ -7,20 +8,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-[#09090b]">
-      {/* Fixed Sidebar */}
-      <Sidebar />
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 relative">
-        {/* Optional: Add a top header bar here if needed later */}
-        
-        <ScrollArea className="h-full w-full">
-          <div className="container p-6 lg:p-10 max-w-7xl mx-auto">
-            {children}
-          </div>
-        </ScrollArea>
-      </main>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="bg-muted/20">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+        </header>
+        <div className="flex flex-1 flex-col p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

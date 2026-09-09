@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   ArrowRight, Edit3, AlertCircle, Clock, MapPin, 
-  User, Shield, CheckCircle, ChevronRight 
+  User, Shield, CheckCircle, ChevronRight, Paperclip
 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const StatusMap: Record<string, number> = {
   "Reported": 0, "Acknowledged": 1, "UnderInvestigation": 2,
@@ -49,7 +50,7 @@ export default function IncidentDetailsPage() {
     }
   };
 
-  if (!data) return <div className="bg-[#0b0e14] min-h-screen animate-pulse" />;
+  if (!data) return <div className="bg-background min-h-screen animate-pulse" />;
 
   const nextAction = {
     "Reported": "Acknowledged",
@@ -61,30 +62,30 @@ export default function IncidentDetailsPage() {
   }[data.status as string];
 
   return (
-    <div className="bg-[#0b0e14] min-h-screen text-slate-300 font-sans">
+    <div className="bg-background min-h-screen text-foreground">
       {/* Top Header Bar */}
-      <div className="border-b border-slate-800 bg-[#0b0e14]/80 backdrop-blur-md sticky top-0 z-10 px-6 py-4">
+      <div className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10 px-6 py-4">
         <div className="flex justify-between items-center max-w-[1600px] mx-auto">
           <div className="flex items-center gap-4">
-            <span className="text-slate-500 font-mono text-sm">INC-{data.id}</span>
-            <h1 className="text-xl font-bold text-white">{data.title}</h1>
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
-                data.impact === 'Critical' ? 'bg-red-900/20 text-red-500 border-red-800' : 'bg-orange-900/20 text-orange-500 border-orange-800'
+            <span className="text-muted-foreground font-mono text-sm">INC-{data.id}</span>
+            <h1 className="text-xl font-semibold">{data.title}</h1>
+            <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
+                data.impact === 'Critical' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-severity-medium/10 text-severity-medium border-severity-medium/20'
             }`}>
               {data.impact} Impact
             </span>
           </div>
           <div className="flex gap-3">
-             <button onClick={() => router.push(`/dashboard/incidents/${id}/edit`)} className="flex items-center gap-2 px-4 py-2 bg-[#1a1f29] border border-slate-700 rounded-lg text-sm font-bold hover:bg-slate-800 transition-all">
-               <Edit3 size={14}/> Edit Details
+             <button onClick={() => router.push(`/dashboard/incidents/${id}/edit`)} className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors">
+               <Edit3 className="w-4 h-4"/> Edit Details
              </button>
              {nextAction && (
                <button 
                  disabled={isUpdating}
                  onClick={() => handleStatusUpdate(nextAction)}
-                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg text-sm font-bold text-white hover:bg-blue-500 transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                 className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                >
-                 {isUpdating ? 'Processing...' : `Move to ${nextAction}`} <ArrowRight size={14}/>
+                 {isUpdating ? 'Processing...' : `Move to ${nextAction}`} <ArrowRight className="w-4 h-4"/>
                </button>
              )}
           </div>
@@ -94,13 +95,13 @@ export default function IncidentDetailsPage() {
       <div className="max-w-[1600px] mx-auto p-6 grid grid-cols-12 gap-6">
         {/* Left Col: Info Card */}
         <aside className="col-span-12 lg:col-span-3 space-y-6">
-          <div className="bg-[#11151c] border border-slate-800 rounded-xl p-5 shadow-sm">
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Incident Details</h3>
+          <div className="bg-card border border-border rounded-lg p-5 shadow-sm">
+            <h3 className="text-xs font-medium text-muted-foreground mb-6">Incident Details</h3>
             <div className="space-y-6">
-                <DetailRow icon={<User size={16}/>} label="Commander" value={data.assignedTo || "Unassigned"} />
-                <DetailRow icon={<MapPin size={16}/>} label="Location" value={data.location} />
-                <DetailRow icon={<Clock size={16}/>} label="Started" value={new Date(data.createdAt).toLocaleString()} />
-                <DetailRow icon={<Shield size={16}/>} label="Type" value={data.type} />
+                <DetailRow icon={<User className="w-4 h-4"/>} label="Owner" value={data.assignedTo || "Unassigned"} />
+                <DetailRow icon={<MapPin className="w-4 h-4"/>} label="Location" value={data.location} />
+                <DetailRow icon={<Clock className="w-4 h-4"/>} label="Started" value={new Date(data.createdAt).toLocaleString()} />
+                <DetailRow icon={<Shield className="w-4 h-4"/>} label="Type" value={data.type} />
             </div>
           </div>
         </aside>
@@ -108,41 +109,45 @@ export default function IncidentDetailsPage() {
         {/* Center Col: Timeline & Activity */}
         <main className="col-span-12 lg:col-span-6 space-y-6">
           {error && (
-            <div className="bg-red-900/20 border border-red-800 text-red-400 p-4 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-              <AlertCircle size={18} /> <span className="text-sm font-medium">{error}</span>
-            </div>
+            <Alert variant="destructive">
+              <AlertCircle className="w-4 h-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
-          <div className="relative pl-8 border-l border-slate-800 space-y-8 ml-4">
+          <div className="relative pl-8 border-l border-border space-y-8 ml-4">
             {data.history.length > 0 ? data.history.map((item: any, i: number) => (
               <div key={i} className="relative group">
-                <div className="absolute -left-[41px] top-1 w-4 h-4 rounded-full bg-blue-600 border-4 border-[#0b0e14] group-hover:scale-125 transition-transform" />
-                <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                  <span className="font-bold text-slate-300">System</span>
-                  <ChevronRight size={12}/>
+                <div className="absolute -left-[41px] top-1 w-4 h-4 rounded-full bg-primary border-4 border-background group-hover:scale-110 transition-transform" />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                  <span className="font-medium text-foreground">System</span>
+                  <ChevronRight className="w-3 h-3"/>
                   <span>{new Date(item.changedAt).toLocaleTimeString()}</span>
                 </div>
-                <div className="bg-[#11151c] border border-slate-800 p-4 rounded-xl shadow-sm">
-                  <p className="text-sm text-white font-medium">Status Transition</p>
-                  <p className="text-sm text-slate-400 mt-1">Moved from <span className="text-slate-200">{item.oldStatus}</span> to <span className="text-blue-400 font-bold">{item.newStatus}</span></p>
-                  {item.transitionNotes && <p className="mt-3 text-xs text-slate-500 italic border-t border-slate-800/50 pt-2">{item.transitionNotes}</p>}
+                <div className="bg-card border border-border p-4 rounded-lg shadow-sm">
+                  <p className="text-sm font-medium">Status Transition</p>
+                  <p className="text-sm text-muted-foreground mt-1">Moved from <span className="text-foreground">{item.oldStatus}</span> to <span className="text-primary font-medium">{item.newStatus}</span></p>
+                  {item.transitionNotes && <p className="mt-3 text-xs text-muted-foreground italic border-t border-border pt-2">{item.transitionNotes}</p>}
                 </div>
               </div>
             )) : (
-              <div className="text-center py-10 text-slate-600 text-sm italic">No status history records found.</div>
+              <div className="text-center py-10 text-muted-foreground text-sm italic">No status history records found.</div>
             )}
           </div>
         </main>
 
         {/* Right Col: Evidence & Resources */}
         <aside className="col-span-12 lg:col-span-3 space-y-6">
-          <div className="bg-[#11151c] border border-slate-800 rounded-xl p-5">
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Evidence Files</h3>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="text-xs font-medium text-muted-foreground mb-4">Evidence Files</h3>
             <div className="space-y-3">
               {data.evidenceFiles.map((f: string, i: number) => (
-                <div key={i} className="p-3 bg-[#0b0e14] border border-slate-800 rounded-lg flex items-center gap-3 group cursor-pointer hover:border-blue-500/50 transition-colors">
-                  <div className="p-2 bg-blue-900/20 text-blue-500 rounded-md">📎</div>
-                  <span className="text-xs truncate text-slate-400 group-hover:text-slate-200">{f}</span>
+                <div key={i} className="p-3 bg-muted/30 border border-border rounded-lg flex items-center gap-3 group cursor-pointer hover:border-primary/20 transition-colors">
+                  <div className="p-2 bg-primary/10 text-primary rounded-md">
+                    <Paperclip className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs truncate text-muted-foreground group-hover:text-foreground">{f}</span>
                 </div>
               ))}
             </div>
@@ -156,10 +161,10 @@ export default function IncidentDetailsPage() {
 function DetailRow({ icon, label, value }: any) {
   return (
     <div className="flex items-start gap-3">
-      <div className="text-slate-600 mt-0.5">{icon}</div>
+      <div className="text-muted-foreground mt-0.5">{icon}</div>
       <div>
-        <p className="text-[9px] font-black text-slate-600 uppercase leading-none mb-1 tracking-tighter">{label}</p>
-        <p className="text-sm text-slate-200 font-medium">{value}</p>
+        <p className="text-xs text-muted-foreground mb-1">{label}</p>
+        <p className="text-sm font-medium">{value}</p>
       </div>
     </div>
   );
